@@ -74,6 +74,22 @@ build_ios_host() {
   ditto "$dir/HostApp.app" "$OUT/HostApp.app"
 }
 
+# expo-brownfield looks for its framework in ios/build/Build/Products, but a
+# custom absolute Build Location in Xcode's settings puts every product
+# elsewhere (and `prebuild --clean` removes ios/ each time). Point the
+# expected directory at the custom one when that setting is in use.
+link_custom_build_products() {
+  local ios="$1"
+  local style type products
+  style="$(defaults read com.apple.dt.Xcode IDEBuildLocationStyle 2>/dev/null || true)"
+  type="$(defaults read com.apple.dt.Xcode IDECustomBuildLocationType 2>/dev/null || true)"
+  products="$(defaults read com.apple.dt.Xcode IDECustomBuildProductsPath 2>/dev/null || true)"
+  if [[ "$style" == "Custom" && "$type" == "Absolute" && -n "$products" ]]; then
+    mkdir -p "$ios/build/Build"
+    ln -sfn "$products" "$ios/build/Build/Products"
+  fi
+}
+
 build_android_host() {
   local host="$1"
 
@@ -122,7 +138,9 @@ case "$FRAMEWORK/$PLATFORM" in
   expo/ios)
     script="brownfield:ios"
     [[ "$BUILD" == "debug" ]] && script="brownfield:ios:debug"
-    (cd "$ROOT/expo/expo-app" && npm run prebuild:ios && npm run "$script")
+    (cd "$ROOT/expo/expo-app" && npm run prebuild:ios)
+    link_custom_build_products "$ROOT/expo/expo-app/ios"
+    (cd "$ROOT/expo/expo-app" && npm run "$script")
     build_ios_host "$ROOT/expo/ios-host" "./scripts/generate.sh $BUILD"
     ;;
   expo/android)

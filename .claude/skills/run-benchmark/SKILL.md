@@ -72,11 +72,12 @@ export AGENT_DEVICE_IOS_XCTESTRUN_FILE="$(ls <Custom の Products のパス>/Age
 
 Expo の xcframework のビルド（`npm run brownfield:ios`）も同じ理由で
 `Could not find the compiled brownfield framework` になります（[expo/README.md](../../../expo/README.md) の既知の問題 2）。
-`./scripts/build.sh expo ios` の前に、prebuild と成果物のビルドを手で行ってください。
+`./scripts/build.sh expo ios` は Xcode の設定（`defaults read com.apple.dt.Xcode`）を見て、
+Build Location が Custom（Absolute）なら prebuild の後に `ios/build/Build/Products` をその場所へのシンボリックリンクにするので、
+そのまま実行できます。`npm run brownfield:ios` を手で実行するときは、prebuild の後に同じリンクを張ってください。
 
 ```bash
 cd expo/expo-app
-npm ci
 npm run prebuild:ios
 mkdir -p ios/build/Build && ln -sfn <Custom の Products のパス> ios/build/Build/Products
 npm run brownfield:ios

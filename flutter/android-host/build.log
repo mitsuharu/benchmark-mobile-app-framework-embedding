@@ -1,0 +1,42 @@
+Starting a Gradle Daemon, 1 busy and 2 stopped Daemons could not be reused, use --status for details
+Calculating task graph as no cached configuration is available for tasks: testDebugUnitTest
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:mapDebugSourceSetPaths
+> Task :app:extractDeepLinksDebug
+> Task :app:generateDebugBuildConfig
+> Task :app:generateDebugResources
+> Task :app:javaPreCompileDebug
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:packageDebugResources
+> Task :app:processDebugNavigationResources
+> Task :app:compileDebugNavigationResources
+> Task :app:checkDebugAarMetadata
+> Task :app:mergeDebugAssets
+> Task :app:processDebugMainManifest
+> Task :app:parseDebugLocalResources
+> Task :app:mergeDebugUnitTestManifest
+> Task :app:processDebugUnitTestManifest
+> Task :app:generateDebugRFile
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeDebugResources
+> Task :app:processDebugResources
+> Task :app:packageDebugUnitTestForUnitTest
+> Task :app:generateDebugUnitTestConfig
+> Task :app:compileDebugKotlin
+> Task :app:processDebugJavaRes
+> Task :app:compileDebugJavaWithJavac
+> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:bundleDebugClassesToCompileJar
+> Task :app:compileDebugUnitTestKotlin
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processDebugUnitTestJavaRes
+> Task :app:testDebugUnitTest
+
+BUILD SUCCESSFUL in 1m 15s
+31 actionable tasks: 31 executed
+Configuration cache entry stored.

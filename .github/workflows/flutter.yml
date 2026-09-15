@@ -1,0 +1,163 @@
+name: flutter
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - flutter/**
+      - .swift-format
+      - .xcode-version
+      - scripts/swift-format.sh
+      - .github/workflows/flutter.yml
+
+# A new push supersedes the previous run.
+concurrency:
+  group: flutter-${{ github.ref }}
+  cancel-in-progress: true
+
+# Nothing here writes to the repository.
+permissions:
+  contents: read
+
+# Flutter is cloned at the version flutter/.fvmrc pins, the same one FVM
+# installs locally, rather than through a third-party setup action.
+env:
+  FLUTTER_HOME: ${{ github.workspace }}/../flutter-sdk
+
+jobs:
+  flutter-module:
+    name: flutter_module
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter/flutter_module
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Flutter
+        working-directory: .
+        run: |
+          version="$(jq -r .flutter flutter/.fvmrc)"
+          git clone --depth 1 --branch "$version" https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+          echo "$FLUTTER_HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Run tests
+        run: flutter test
+
+  android:
+    name: Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # The action's default package list still names `tools`, which the SDK
+      # no longer has. AGP fetches the platform it compiles against itself.
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: platform-tools
+
+      - name: Set up Flutter
+        run: |
+          version="$(jq -r .flutter flutter/.fvmrc)"
+          git clone --depth 1 --branch "$version" https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+          echo "$FLUTTER_HOME/bin" >> "$GITHUB_PATH"
+
+      # android-host commits a gradle-wrapper.jar. This checks it against the
+      # checksums Gradle publishes, so a tampered wrapper cannot run here.
+      - name: Validate the Gradle wrapper
+        uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      # Caches ~/.gradle and the configuration cache.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      # Debug for the unit tests, release for the build the benchmark measures.
+      - name: Build the AARs
+        working-directory: flutter/flutter_module
+        run: flutter build aar --no-profile -o "$GITHUB_WORKSPACE/flutter/android-host/local-repo"
+
+      - name: Test the host app
+        working-directory: flutter/android-host
+        run: ./gradlew testDebugUnitTest
+
+      - name: Build for release
+        working-directory: flutter/android-host
+        run: ./gradlew assembleRelease
+
+  ios:
+    name: iOS
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # xcodes ships on the runner image, so the Xcode versions it already
+      # holds can be selected without a third-party action.
+      - name: Select Xcode
+        run: |
+          sudo xcodes select "$(cat .xcode-version)"
+          xcodebuild -version
+
+      - name: Set up Flutter
+        run: |
+          version="$(jq -r .flutter flutter/.fvmrc)"
+          git clone --depth 1 --branch "$version" https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+          echo "$FLUTTER_HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Lint Swift
+        run: ./scripts/swift-format.sh
+
+      # The runner has no signing identity; the host app signs what it embeds.
+      - name: Build the xcframeworks
+        working-directory: flutter/flutter_module
+        run: flutter build ios-framework --no-debug --no-profile --no-codesign --output=../ios-host/Flutter
+
+      - name: Generate the host app project
+        working-directory: flutter/ios-host
+        run: |
+          brew install xcodegen
+          ./scripts/generate.sh Release
+
+      - name: Test the host app
+        working-directory: flutter/ios-host
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project HostApp.xcodeproj \
+            -scheme HostApp \
+            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify --renderer github-actions
+
+      # The configuration the benchmark measures.
+      - name: Build for release
+        working-directory: flutter/ios-host
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project HostApp.xcodeproj \
+            -scheme HostApp \
+            -configuration Release \
+            -sdk iphonesimulator \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify --renderer github-actions

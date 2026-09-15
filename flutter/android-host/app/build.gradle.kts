@@ -1,0 +1,69 @@
+plugins {
+  id("com.android.application")
+  id("org.jetbrains.kotlin.plugin.compose")
+}
+
+android {
+  namespace = "com.example.benchmark.flutter.host"
+  compileSdk = 37
+
+  defaultConfig {
+    applicationId = "com.example.benchmark.flutter.host"
+    minSdk = 24
+    targetSdk = 36
+    versionCode = 1
+    versionName = "1.0"
+
+    // Handed to the Flutter screen as `apiBaseUrl`. Empty means the real
+    // GitHub API. The benchmark build passes
+    // -PbenchApiBaseUrl=http://10.0.2.2:8787 to reach bench/mock-server.
+    val apiBaseUrl = providers.gradleProperty("benchApiBaseUrl").getOrElse("")
+    buildConfigField("String", "BENCH_API_BASE_URL", "\"$apiBaseUrl\"")
+  }
+
+  buildTypes {
+    release {
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      // Signed with the debug key so the release build installs on an emulator.
+      signingConfig = signingConfigs.getByName("debug")
+    }
+  }
+
+  buildFeatures {
+    compose = true
+    buildConfig = true
+  }
+
+  // Robolectric provides Looper/Context, so the host's glue can be covered by
+  // plain unit tests instead of instrumentation tests.
+  testOptions { unitTests.isIncludeAndroidResources = true }
+
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
+}
+
+dependencies {
+  // The Flutter module, one AAR per build mode: debug runs the Dart VM (JIT),
+  // release runs the AOT-compiled snapshot.
+  debugImplementation("com.example.benchmark.flutter.repo_search:flutter_debug:1.0")
+  releaseImplementation("com.example.benchmark.flutter.repo_search:flutter_release:1.0")
+
+  // FlutterFragment is an AndroidX Fragment.
+  implementation("androidx.fragment:fragment-ktx:1.9.0")
+
+  implementation("androidx.core:core-ktx:1.19.0")
+  implementation("androidx.activity:activity-compose:1.13.0")
+  implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+  implementation(platform("androidx.compose:compose-bom:2026.09.00"))
+  implementation("androidx.compose.ui:ui")
+  implementation("androidx.compose.material3:material3")
+  debugImplementation("androidx.compose.ui:ui-tooling")
+
+  testImplementation("junit:junit:4.13.2")
+  testImplementation("org.robolectric:robolectric:4.17")
+  testImplementation("androidx.test:core:1.7.0")
+}

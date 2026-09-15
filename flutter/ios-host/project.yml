@@ -1,0 +1,63 @@
+name: HostApp
+options:
+  bundleIdPrefix: com.example.benchmark.flutter
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "16.4"
+
+targets:
+  HostApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: HostApp
+    info:
+      path: HostApp/Info.plist
+      properties:
+        CFBundleDisplayName: Flutter Host
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # Lets the benchmark build reach bench/mock-server over plain http on
+        # the loopback address. Remote hosts still require https.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSAllowsLocalNetworking: true
+        # Empty means the real GitHub API; see AppConfig.swift.
+        BenchAPIBaseURL: $(BENCH_API_BASE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.flutter.host
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        # Overridden on the xcodebuild command line by the benchmark build,
+        # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787
+        BENCH_API_BASE_URL: ""
+    dependencies:
+      # Produced by `flutter build ios-framework --output=../ios-host/Flutter`
+      # in ../flutter_module. Dynamic frameworks, so they are embedded. The module
+      # uses no plugins, so there is no FlutterPluginRegistrant framework.
+      # FLUTTER_BUILD_MODE picks Release or Debug; see scripts/generate.sh.
+      - framework: Flutter/${FLUTTER_BUILD_MODE}/App.xcframework
+        embed: true
+      - framework: Flutter/${FLUTTER_BUILD_MODE}/Flutter.xcframework
+        embed: true
+    scheme:
+      testTargets:
+        - HostAppTests
+
+  HostAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: HostAppTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.flutter.host.tests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: HostApp

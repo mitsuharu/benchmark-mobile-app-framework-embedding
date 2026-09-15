@@ -1,0 +1,30 @@
+name: repo_search
+description: "The search screen of the benchmark, as a Flutter module embedded into native host apps."
+publish_to: none
+
+# Only used by `flutter run` on the module itself; the host apps have their own.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Identifies the project as a module meant for embedding in a native host
+  # app. These must not change after generation: the tooling uses them to keep
+  # the generated .android/ and .ios/ projects consistent.
+  module:
+    androidX: true
+    androidPackage: com.example.benchmark.flutter.repo_search
+    iosBundleIdentifier: com.example.benchmark.flutter.repoSearch

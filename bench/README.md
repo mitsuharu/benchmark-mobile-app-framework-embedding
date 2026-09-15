@@ -82,6 +82,21 @@ Android は `dumpsys meminfo` の PSS です。プラットフォーム間では
 - Xcode の Build Location がカスタムの場合の注意は [スキル](../.claude/skills/run-benchmark/SKILL.md) を参照してください。
 - 計測中は Mac で他のビルドなどを走らせないでください。数値が大きくぶれます。
 
+## デモの録画
+
+ルート README の「動作の様子」の GIF を撮り直すスクリプトです。計測用ビルドとモックサーバを使い、
+計測と同じ操作を、画面を追えるよう 1 段ごとに少し止めながら行います。
+
+```bash
+node demo.mjs --platform ios --framework all       # → ../docs/media/ios-<framework>.gif
+node demo.mjs --platform android --framework all --serial emulator-5554
+```
+
+録画は `agent-device record`（iOS は simctl、Android は screenrecord）で撮り、
+[`scripts/mp4-to-gif.swift`](scripts/mp4-to-gif.swift) で GIF にします。ffmpeg は不要で、macOS 標準の
+AVFoundation / ImageIO だけを使います。前のフレームと同じ画像は 1 枚にまとめるので、止まっている時間はほぼサイズになりません。
+幅と fps は `--width`（既定 270）/ `--fps`（既定 8）で変えられます。
+
 ## 開発
 
 ```bash

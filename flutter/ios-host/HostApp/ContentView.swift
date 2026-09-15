@@ -142,7 +142,7 @@ private struct FlutterScreen: UIViewControllerRepresentable {
     let runtime = FlutterRepoSearch.shared
     runtime.onClose = onClose
     runtime.prepareScreen(keyword: keyword, apiBaseURL: AppConfig.apiBaseURL)
-    return FlutterViewController(engine: runtime.engine, nibName: nil, bundle: nil)
+    return runtime.viewController
   }
 
   func updateUIViewController(_ uiViewController: FlutterViewController, context: Context) {}

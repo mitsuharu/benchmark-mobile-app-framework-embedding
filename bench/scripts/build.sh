@@ -86,7 +86,7 @@ case "$FRAMEWORK/$PLATFORM" in
     # simulator can only run the Debug (JIT) frameworks. The host app itself
     # is still built for release. See flutter/README.md.
     (cd "$ROOT/flutter/flutter_module" &&
-      fvm flutter build ios-framework --debug --no-profile --no-release --output=../ios-host/Flutter)
+      fvm flutter build ios-framework --debug --no-profile --no-release --no-codesign --output=../ios-host/Flutter)
     build_ios_host "$ROOT/flutter/ios-host" "./scripts/generate.sh Debug"
     ;;
   flutter/android)

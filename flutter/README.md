@@ -38,7 +38,7 @@ CI は FVM を使わず、`.fvmrc` に書かれたバージョンの Flutter を
 | --- | --- | --- |
 | 成果物 | `flutter build ios-framework` の `App` / `Flutter` / `FlutterPluginRegistrant` の xcframework（dynamic） | `flutter build aar` の `flutter_debug` / `flutter_release`（Maven リポジトリ） |
 | エンジン | `FlutterEngine` を `HostApp.init` で起動して使い回す | `FlutterEngine` を `Application.onCreate` で起動し、`FlutterEngineCache` に置いて使い回す |
-| 画面 | `FlutterViewController(engine:)` | `FlutterFragment.withCachedEngine(...)` |
+| 画面 | `FlutterViewController(engine:)` を最初の表示で 1 つ作って使い回す | `FlutterFragment.withCachedEngine(...)` を表示ごとに作る |
 | 通信 | MethodChannel `repo_search` | 同じ |
 
 エンジンをアプリ起動時に作って使い回すのは、Flutter の公式ドキュメントが推奨する構成です。
@@ -64,6 +64,12 @@ React Native が画面ごとに新しいルートビューを `initialProps` 付
 > 画面の中の要素が見えません（描画はされている）。`FlutterRepoSearch.start()` で `engine.ensureSemanticsEnabled()` を呼び、
 > 常にアクセシビリティ情報を持つ React Native / Compose と条件を揃えています。その分の処理は iOS の計測値に含まれます。
 > Android は UIAutomator の問い合わせで自動的に有効になります。
+>
+> **iOS では `FlutterViewController` を 1 つだけ作って使い回します。** エンジンに新しいビューコントローラーを付けると
+> アクセシビリティのブリッジが捨てられ、Flutter はセマンティクスが無効から有効に変わったときにしか作り直しません。
+> シミュレータではセマンティクスが有効のまま変わらないので、表示ごとにビューコントローラーを作ると
+> 2 回目以降の画面が XCTest / agent-device から空に見えました（描画はされている）。
+> そのため iOS の「埋め込み画面の表示（2 回目）」は、ビューコントローラーを作り直さない分だけ Android より有利です。
 
 Flutter はネイティブのコードを同梱しないので、型付きの `RepoSearchBridge` はホストアプリ側
 （iOS: `FlutterRepoSearch.swift`、Android: `FlutterRepoSearch.kt`）にあります。

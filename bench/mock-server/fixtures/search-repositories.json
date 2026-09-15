@@ -1,0 +1,166 @@
+{
+  "total_count": 267833,
+  "incomplete_results": false,
+  "items": [
+    {
+      "id": 65750241,
+      "full_name": "expo/expo",
+      "description": "An open-source framework for making universal native apps with React. Expo runs on Android, iOS, and the web.",
+      "stargazers_count": 52240,
+      "language": "TypeScript",
+      "html_url": "https://github.com/expo/expo"
+    },
+    {
+      "id": 51452356,
+      "full_name": "infinitered/ignite",
+      "description": "Infinite Red's battle-tested React Native project boilerplate, along with a CLI, component/model generators, and more! 9 years of continuous development and counting.",
+      "stargazers_count": 19941,
+      "language": "TypeScript",
+      "html_url": "https://github.com/infinitered/ignite"
+    },
+    {
+      "id": 9524057,
+      "full_name": "prometheus/node_exporter",
+      "description": "Exporter for machine metrics",
+      "stargazers_count": 13781,
+      "language": "Go",
+      "html_url": "https://github.com/prometheus/node_exporter"
+    },
+    {
+      "id": 830077101,
+      "full_name": "wechat-article/wechat-article-exporter",
+      "description": "一款在线的 微信公众号文章批量下载 工具，支持导出阅读量与评论数据，无需搭建任何环境，可通过 在线网站 使用，支持 docker 私有化部署和 Cloudflare 部署。  支持下载各种文件格式，其中 HTML 格式可100%还原文章排版与样式。",
+      "stargazers_count": 12899,
+      "language": "TypeScript",
+      "html_url": "https://github.com/wechat-article/wechat-article-exporter"
+    },
+    {
+      "id": 97034042,
+      "full_name": "Tyrrrz/DiscordChatExporter",
+      "description": "Saves Discord chat logs to a file",
+      "stargazers_count": 11994,
+      "language": "C#",
+      "html_url": "https://github.com/Tyrrrz/DiscordChatExporter"
+    },
+    {
+      "id": 62260083,
+      "full_name": "withspectrum/spectrum",
+      "description": "Simple, powerful online communities.",
+      "stargazers_count": 10829,
+      "language": "JavaScript",
+      "html_url": "https://github.com/withspectrum/spectrum"
+    },
+    {
+      "id": 11765017,
+      "full_name": "JetBrains/Exposed",
+      "description": "Kotlin SQL Framework",
+      "stargazers_count": 9287,
+      "language": "Kotlin",
+      "html_url": "https://github.com/JetBrains/Exposed"
+    },
+    {
+      "id": 732431229,
+      "full_name": "founded-labs/react-native-reusables",
+      "description": "Bringing shadcn/ui to React Native. Beautifully crafted components with Nativewind/Uniwind, open source, and almost as easy to use.",
+      "stargazers_count": 8654,
+      "language": "TypeScript",
+      "html_url": "https://github.com/founded-labs/react-native-reusables"
+    },
+    {
+      "id": 305539431,
+      "full_name": "BlueMatthew/WechatExporter",
+      "description": "Wechat Chat History Exporter 微信聊天记录导出备份程序",
+      "stargazers_count": 8449,
+      "language": "C++",
+      "html_url": "https://github.com/BlueMatthew/WechatExporter"
+    },
+    {
+      "id": 8016381,
+      "full_name": "sebastianbergmann/exporter",
+      "description": "Provides the functionality to export PHP variables for visualization",
+      "stargazers_count": 6810,
+      "language": "PHP",
+      "html_url": "https://github.com/sebastianbergmann/exporter"
+    },
+    {
+      "id": 527335176,
+      "full_name": "t3-oss/create-t3-turbo",
+      "description": "Clean and simple starter repo using the T3 Stack along with Expo React Native",
+      "stargazers_count": 6107,
+      "language": "TypeScript",
+      "html_url": "https://github.com/t3-oss/create-t3-turbo"
+    },
+    {
+      "id": 185632238,
+      "full_name": "czy0729/Bangumi",
+      "description": ":electron: An unofficial https://bgm.tv ui first app client for Android and iOS, built with React Native. 一个无广告、以爱好为驱动、不以盈利为目的、专门做 ACG 的类似豆瓣的追番记录，bgm.tv 第三方客户端。为移动端重新设计，内置大量加强的网页端难以实现的功能，且提供了相当的自定义选项。 目前已适配 iOS / Android。",
+      "stargazers_count": 5931,
+      "language": "TypeScript",
+      "html_url": "https://github.com/czy0729/Bangumi"
+    },
+    {
+      "id": 41964498,
+      "full_name": "prometheus/blackbox_exporter",
+      "description": "Blackbox prober exporter",
+      "stargazers_count": 5870,
+      "language": "Go",
+      "html_url": "https://github.com/prometheus/blackbox_exporter"
+    },
+    {
+      "id": 930459670,
+      "full_name": "AmanVarshney01/create-better-t-stack",
+      "description": "A modern CLI tool for scaffolding end-to-end type-safe TypeScript projects with best practices and customizable configurations",
+      "stargazers_count": 5762,
+      "language": "TypeScript",
+      "html_url": "https://github.com/AmanVarshney01/create-better-t-stack"
+    },
+    {
+      "id": 488807679,
+      "full_name": "ReagentX/imessage-exporter",
+      "description": "Export iMessage data + run iMessage Diagnostics",
+      "stargazers_count": 5594,
+      "language": "Rust",
+      "html_url": "https://github.com/ReagentX/imessage-exporter"
+    },
+    {
+      "id": 1009980734,
+      "full_name": "orion-lib/OrionTV",
+      "description": "一个基于 React Native TVOS 和 Expo 构建的播放器，旨在提供流畅的视频观看体验。",
+      "stargazers_count": 5526,
+      "language": "TypeScript",
+      "html_url": "https://github.com/orion-lib/OrionTV"
+    },
+    {
+      "id": 836440533,
+      "full_name": "streamyfin/streamyfin",
+      "description": "A modern Jellyfin client built with Expo",
+      "stargazers_count": 5194,
+      "language": "TypeScript",
+      "html_url": "https://github.com/streamyfin/streamyfin"
+    },
+    {
+      "id": 826579501,
+      "full_name": "shuakami/qq-chat-exporter",
+      "description": "🚀 QQ聊天记录、表情包导出工具 | 自动化提取图片/文字/图片消息，支持TXT/JSON导出，高效备份，支持NT QQ ",
+      "stargazers_count": 5143,
+      "language": "Rust",
+      "html_url": "https://github.com/shuakami/qq-chat-exporter"
+    },
+    {
+      "id": 1174121386,
+      "full_name": "tiajinsha/JKVideo",
+      "description": "高颜值第三方 B 站 React Native 客户端",
+      "stargazers_count": 4994,
+      "language": "TypeScript",
+      "html_url": "https://github.com/tiajinsha/JKVideo"
+    },
+    {
+      "id": 1146193768,
+      "full_name": "callstack/agent-device",
+      "description": "Mobile app automation and verification for AI coding agents. CLI, MCP server, and typed Node.js API for iOS, Android, HarmonyOS, TV, web, macOS, and Linux.",
+      "stargazers_count": 4576,
+      "language": "TypeScript",
+      "html_url": "https://github.com/callstack/agent-device"
+    }
+  ]
+}

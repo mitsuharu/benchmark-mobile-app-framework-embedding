@@ -31,13 +31,19 @@ const markers = (section) => [
   `<!-- bench:results:${section}:end -->`,
 ]
 
-/** The README sections, each read from results/<id>/ (see run.mjs). */
+/**
+ * The README sections, each read from results/<id>/ (see run.mjs). A
+ * section with a base compares every figure with it; `baseFirst: false`
+ * puts the section's own figure first (development happens in debug, so the
+ * debug comparison reads debug → release).
+ */
 const SECTIONS = [
   { id: 'release' },
   {
     id: 'debug',
     base: 'release',
-    compareTitle: 'リリースビルドとの比較（リリース → デバッグ）',
+    baseFirst: false,
+    compareTitle: 'リリースビルドにしたときの変化（デバッグ → リリース）',
   },
   {
     id: 'release-device',
@@ -107,7 +113,12 @@ function sizeLabel(platform, result) {
   return result.build === 'debug' ? 'APK' : 'APK（R8 有効）'
 }
 
-function platformSection(platform, results, base, compareTitle) {
+function platformSection(
+  platform,
+  results,
+  base,
+  { compareTitle, baseFirst = true } = {},
+) {
   const frameworks = FRAMEWORKS.filter(
     (framework) => results[`${platform}/${framework}`],
   )
@@ -167,7 +178,9 @@ function platformSection(platform, results, base, compareTitle) {
     : []
   if (compared.length > 0) {
     const baseOf = (framework) => base[`${platform}/${framework}`]
-    const arrow = (before, after) => `${before} → ${after}`
+    // `before` is always the base's figure and `after` this section's.
+    const arrow = (before, after) =>
+      baseFirst ? `${before} → ${after}` : `${after} → ${before}`
     sections.push(
       '',
       `#### ${compareTitle}`,
@@ -206,13 +219,13 @@ function platformSection(platform, results, base, compareTitle) {
   return sections.join('\n')
 }
 
-function renderSection({ id, base, compareTitle }, results) {
+function renderSection({ id, base, ...compare }, results) {
   return PLATFORMS.map((platform) =>
     platformSection(
       platform,
       results[id],
       base ? results[base] : null,
-      compareTitle,
+      compare,
     ),
   )
     .filter(Boolean)

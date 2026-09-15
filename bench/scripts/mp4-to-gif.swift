@@ -1,5 +1,4 @@
-#!/usr/bin/env swift
-//
+#!/usr/bin/env swift  //
 // Converts a screen recording into a small looping GIF for the README, with
 // nothing but the frameworks that ship with macOS (no ffmpeg needed).
 //
@@ -16,7 +15,8 @@ import UniformTypeIdentifiers
 
 let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
-  FileHandle.standardError.write(Data("usage: mp4-to-gif.swift <in.mp4> <out.gif> [width] [fps]\n".utf8))
+  FileHandle.standardError.write(
+    Data("usage: mp4-to-gif.swift <in.mp4> <out.gif> [width] [fps]\n".utf8))
   exit(1)
 }
 let input = URL(fileURLWithPath: arguments[1])

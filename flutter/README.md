@@ -59,6 +59,12 @@ React Native が画面ごとに新しいルートビューを `initialProps` 付
 | Dart → ホスト | `close` | — |
 | Dart → ホスト | `mark` | `name`, `epochMs`（計測マーカー。ホストがログに書く） |
 
+> **iOS ではセマンティクス（アクセシビリティのツリー）を常に有効にしています。**
+> Flutter は iOS で VoiceOver などが要求するまでツリーを作らないため、そのままでは XCTest / agent-device から
+> 画面の中の要素が見えません（描画はされている）。`FlutterRepoSearch.start()` で `engine.ensureSemanticsEnabled()` を呼び、
+> 常にアクセシビリティ情報を持つ React Native / Compose と条件を揃えています。その分の処理は iOS の計測値に含まれます。
+> Android は UIAutomator の問い合わせで自動的に有効になります。
+
 Flutter はネイティブのコードを同梱しないので、型付きの `RepoSearchBridge` はホストアプリ側
 （iOS: `FlutterRepoSearch.swift`、Android: `FlutterRepoSearch.kt`）にあります。
 

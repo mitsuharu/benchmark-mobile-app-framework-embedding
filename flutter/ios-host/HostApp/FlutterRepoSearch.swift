@@ -137,6 +137,11 @@ final class FlutterRepoSearch {
     guard channel == nil else { return }
     // The module uses no plugins, so there is nothing to register.
     engine.run()
+    // On iOS, Flutter builds its accessibility tree only once an assistive
+    // technology asks for it, so UI automation (XCTest, agent-device) sees an
+    // empty view. React Native and Compose always expose theirs; turning it on
+    // here keeps the screen operable and the work comparable.
+    engine.ensureSemanticsEnabled()
 
     let channel = FlutterMethodChannel(
       name: Self.channelName,

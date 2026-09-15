@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * Turns results/<section>/*.json into the Markdown tables of the root README.
+ * Turns results/<section>/*.json into the tables and charts of the root
+ * README.
  *
- *   node report.mjs            # print the tables
+ *   node report.mjs            # print the sections
  *   node report.mjs --write    # replace each section in ../README.md
  *
  * Each section has its own place between
  * `<!-- bench:results:<section>:start -->` and `<!-- bench:results:<section>:end -->`.
- * The debug and physical-device sections also compare every figure with the
- * release build on the simulator / emulator.
+ * The release section compares every figure with the debug build (development
+ * happens in debug, and release is what ships), and the physical-device
+ * section with the release build on the simulator / emulator.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -32,24 +34,24 @@ const markers = (section) => [
 ]
 
 /**
- * The README sections, each read from results/<id>/ (see run.mjs). A
- * section with a base compares every figure with it; `baseFirst: false`
- * puts the section's own figure first (development happens in debug, so the
- * debug comparison reads debug → release).
+ * The README sections in reading order, each read from results/<id>/ (see
+ * run.mjs). A section with a base also shows how every figure changed from
+ * the base (base → this section).
  */
 const SECTIONS = [
-  { id: 'release' },
+  { id: 'debug', buildName: 'デバッグビルド' },
   {
-    id: 'debug',
-    base: 'release',
-    baseFirst: false,
-    compareTitle: 'リリースビルドにしたときの変化（デバッグ → リリース）',
+    id: 'release',
+    buildName: 'リリースビルド',
+    base: 'debug',
+    compareTitle: 'デバッグビルドからの変化（デバッグ → リリース）',
   },
   {
     id: 'release-device',
+    buildName: 'リリースビルド',
     base: 'release',
     compareTitle:
-      'シミュレータ / エミュレータとの比較（シミュレータ・エミュレータ → 実機）',
+      'シミュレータ / エミュレータからの変化（シミュレータ・エミュレータ → 実機）',
   },
 ]
 
@@ -68,6 +70,12 @@ const TIMINGS = [
   ['searchRenderMs', '検索 → 結果の描画'],
   ['searchToHostMs', '検索 → ホストが結果を受信'],
   ['commandMs', 'ホスト → 埋め込み画面へのキーワード差し替え'],
+]
+
+/** The timings charted above each platform's tables. */
+const CHARTS = [
+  ['coldStartMs', 'コールドスタート（ms）'],
+  ['embedOpenColdMs', '埋め込み画面の表示・初回（ms）'],
 ]
 
 const MEMORY = [
@@ -91,6 +99,40 @@ function table(header, rows) {
   ].join('\n')
 }
 
+/**
+ * Rounds up to a tidy axis maximum that still leaves the longest bar most of
+ * the width (2002 → 2500, not 5000).
+ */
+function niceCeil(value) {
+  if (value <= 0) {
+    return 1
+  }
+  const power = 10 ** Math.floor(Math.log10(value))
+  return [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
+    .map((step) => step * power)
+    .find((top) => top >= value)
+}
+
+/**
+ * One timing for every framework as a Mermaid bar chart, which GitHub draws
+ * in its light and dark themes. One series in one color: the title names it,
+ * and the table below carries every value.
+ */
+function barChart(title, frameworks, values) {
+  const labels = frameworks.map(
+    (framework) => `"${FRAMEWORK_NAMES[framework]}"`,
+  )
+  return [
+    '```mermaid',
+    'xychart-beta horizontal',
+    `  title "${title}"`,
+    `  x-axis [${labels.join(', ')}]`,
+    `  y-axis "ms" 0 --> ${niceCeil(Math.max(...values))}`,
+    `  bar [${values.join(', ')}]`,
+    '```',
+  ].join('\n')
+}
+
 /** Results by section, then by `<platform>/<framework>`. */
 async function loadResults() {
   const results = {}
@@ -106,6 +148,22 @@ async function loadResults() {
   return results
 }
 
+/**
+ * The device at a glance: the label given to `run.mjs --device-label`, or
+ * the device's name and whether it was a simulator, an emulator or hardware.
+ */
+function deviceLabel(platform, result) {
+  if (result.device.label) {
+    return result.device.label
+  }
+  const kind = result.physical
+    ? '実機'
+    : platform === 'ios'
+      ? 'シミュレータ'
+      : 'エミュレータ'
+  return `${result.device.name}（${kind}）`
+}
+
 function sizeLabel(platform, result) {
   if (platform === 'ios') {
     return result.physical ? '.app（実機向け）' : '.app（シミュレータ向け）'
@@ -113,12 +171,7 @@ function sizeLabel(platform, result) {
   return result.build === 'debug' ? 'APK' : 'APK（R8 有効）'
 }
 
-function platformSection(
-  platform,
-  results,
-  base,
-  { compareTitle, baseFirst = true } = {},
-) {
+function platformSection(platform, results, base, { buildName, compareTitle }) {
   const frameworks = FRAMEWORKS.filter(
     (framework) => results[`${platform}/${framework}`],
   )
@@ -133,10 +186,20 @@ function platformSection(
   const sample = of(frameworks[0])
   const memoryKind = platform === 'ios' ? 'RSS' : 'PSS'
 
+  const charts = CHARTS.flatMap(([key, title]) => {
+    const values = frameworks.map((framework) =>
+      Math.round(of(framework).summary.timingsMs[key]?.median ?? Number.NaN),
+    )
+    return values.some(Number.isNaN)
+      ? []
+      : ['', barChart(title, frameworks, values)]
+  })
+
   const sections = [
-    `### ${PLATFORM_NAMES[platform]}`,
+    `### ${PLATFORM_NAMES[platform]}：${deviceLabel(platform, sample)}`,
     '',
-    `端末: ${sample.device.name}（${sample.iterations} 回の中央値、ウォームアップ ${sample.warmup} 回を除く）`,
+    `${buildName}。${sample.iterations} 回の中央値（ウォームアップ ${sample.warmup} 回を除く）。`,
+    ...charts,
     '',
     '#### 時間',
     '',
@@ -172,15 +235,13 @@ function platformSection(
     ]),
   ]
 
-  // How far each figure is from the base section's.
+  // How each figure changed from the base section's (base → this section).
   const compared = base
     ? frameworks.filter((framework) => base[`${platform}/${framework}`])
     : []
   if (compared.length > 0) {
     const baseOf = (framework) => base[`${platform}/${framework}`]
-    // `before` is always the base's figure and `after` this section's.
-    const arrow = (before, after) =>
-      baseFirst ? `${before} → ${after}` : `${after} → ${before}`
+    const arrow = (before, after) => `${before} → ${after}`
     sections.push(
       '',
       `#### ${compareTitle}`,
@@ -219,14 +280,9 @@ function platformSection(
   return sections.join('\n')
 }
 
-function renderSection({ id, base, ...compare }, results) {
+function renderSection({ id, base, ...labels }, results) {
   return PLATFORMS.map((platform) =>
-    platformSection(
-      platform,
-      results[id],
-      base ? results[base] : null,
-      compare,
-    ),
+    platformSection(platform, results[id], base ? results[base] : null, labels),
   )
     .filter(Boolean)
     .join('\n\n')

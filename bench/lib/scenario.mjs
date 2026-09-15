@@ -65,8 +65,14 @@ export function memoryKb(data, platform) {
  * Relaunches the app and walks through the scenario once:
  * launch → open the embedded screen → search → send a keyword →
  * back to the host → open the embedded screen again → back.
+ *
+ * With `relaunch: false` the app is expected to have just been launched
+ * already (see run.mjs), and is only brought to the front.
  */
-export async function runScenario(device, { appId, platform, settleMs }) {
+export async function runScenario(
+  device,
+  { appId, platform, settleMs, relaunch = true },
+) {
   const selectors = SELECTORS[platform]
   const memory = {}
 
@@ -86,7 +92,9 @@ export async function runScenario(device, { appId, platform, settleMs }) {
     await device.call(['wait', selectors.openEmbedded, String(WAIT_MS)])
   }
 
-  const opened = await device.call(['open', appId, '--relaunch'])
+  const opened = await device.call(
+    relaunch ? ['open', appId, '--relaunch'] : ['open', appId],
+  )
   await device.call(['wait', selectors.openEmbedded, String(WAIT_MS)])
   await settleAndSample('hostIdle')
 

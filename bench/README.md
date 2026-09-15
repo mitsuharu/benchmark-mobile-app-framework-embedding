@@ -24,12 +24,20 @@ npm run mock-server -- --delay-ms 200 --quiet
 を返します（`q` が無いときは本物と同じく 422）。フィクスチャは実際の API の
 `q=expo&sort=stars&order=desc&per_page=20` の応答から、アプリが使うフィールドだけを残したものです。
 
-ループバック（`127.0.0.1`）でのみ待ち受けます。アプリからの接続先は次のとおりです。
+既定ではループバック（`127.0.0.1`）でのみ待ち受けます。アプリからの接続先は次のとおりです。
 
 | プラットフォーム | ベース URL |
 | --- | --- |
 | iOS シミュレータ | `http://127.0.0.1:8787`（ホストとネットワークを共有している） |
-| Android エミュレータ | `http://127.0.0.1:8787`（`run.mjs` が `adb reverse tcp:8787 tcp:8787` でエミュレータ内に転送する） |
+| Android エミュレータ / 実機 | `http://127.0.0.1:8787`（`run.mjs` が `adb reverse tcp:8787 tcp:8787` で端末内に転送する） |
+| iPhone 実機 | `http://<Mac の LAN のアドレス>:8787`（Wi‑Fi 経由。下記の 2 つ目のサーバ） |
+
+iPhone の実機からは Mac のループバックに届かず、`adb reverse` にあたる仕組みもないので、
+LAN のアドレスで待ち受けるサーバをもう 1 つ起動します（同じポートでもアドレスが違えば並べて動かせます）。
+
+```bash
+npm run mock-server -- --quiet --host "$(ipconfig getifaddr en0)"
+```
 
 Android でエミュレータからホストへの固定アドレス `10.0.2.2` を使わないのは、遅いためです。
 この Mac では 1 リクエストあたり 0.6〜1 秒かかり（`adb reverse` 経由は 6〜9ms）、
@@ -62,6 +70,46 @@ node run.mjs --platform ios --framework all --build debug  # → results/debug/
 
 Expo のデバッグビルドを計測するときは Metro（8081）が必要です。`run.mjs` は Metro が動いていなければ止まり、
 Android では `adb reverse tcp:8081 tcp:8081` も設定します。
+
+### 実機
+
+`run.mjs --physical` で実機を計測します。結果は `results/<build>-device/` に分かれ、
+`report.mjs --write` はルート README の実機の節に、シミュレータ / エミュレータとの比較つきで書き出します。
+
+```bash
+# Android: エミュレータと同じ APK をそのまま使う
+node run.mjs --platform android --framework all --physical --serial <adb の serial>
+
+# iOS: 実機向けに署名したビルドを作る（Flutter もリリース（AOT）になる）
+export BENCH_IOS_TEAM_ID=<Apple Developer の Team ID>
+./scripts/build.sh native ios release device           # → artifacts/release/native/ios-device/
+export AGENT_DEVICE_IOS_TEAM_ID=$BENCH_IOS_TEAM_ID      # agent-device のランナーの署名
+export AGENT_DEVICE_IOS_BUNDLE_ID=<一意な ID>.agentdevice.runner
+node run.mjs --platform ios --framework all --physical --udid <UDID>
+```
+
+- Android の実機は開発者オプションの USB デバッグが必要です。Xiaomi（HyperOS / MIUI）は
+  「USB 経由でインストール」と「USB デバッグ（セキュリティ設定）」も有効にしないと、インストールやタップができません。
+- iPhone はデベロッパモードを有効にし、計測中はロックを解除しておきます。
+- iPhone のビルドは Mac の LAN のアドレス（`ipconfig getifaddr en0`）を向きます。変えるときは `BENCH_IOS_DEVICE_API_BASE_URL` を指定します。
+
+iPhone の実機でつまずいた点:
+
+- **Xcode が端末の iOS に対応していること。** Xcode 26.6 は iOS 27 の端末にアプリを入れられません
+  （`The developer disk image could not be mounted`）。
+- **Mac の開発ツールの許可。** `DevToolsSecurity -status` が無効だと、agent-device のランナーが
+  `Developer mode is disabled for Apple development tools` で動きません。`sudo DevToolsSecurity -enable` で有効にします。
+- **`--udid` はハードウェアの UDID。** `xcrun devicectl list devices` の Identifier（CoreDevice の ID）ではなく、
+  `npx agent-device devices --platform ios --json` の `id`（`00008150-…` の形）を渡します。
+- **Build Location が Custom の Mac。** ランナーの `.xctestrun` を見つけられないので、
+  `AGENT_DEVICE_IOS_XCTESTRUN_FILE` に `<Products>/AgentDeviceRunner_*iphoneos*.xctestrun` を指定します。
+- **マーカーは stderr にも書く。** 実機では agent-device のアプリログが「agent-device が起動したプロセスの出力」だけで、
+  統合ログ（`Logger` / `NSLog`）は入りません。そのため iOS の実装はマーカーを stderr にも書いています
+  （シミュレータでは同じマーカーが 2 回出るので、`parseMarkers` が 1 つにまとめます）。
+- **ログのための再起動をそのまま使う。** 実機では `logs clear --restart` が出力を取るためにアプリを起動し直すので、
+  `run.mjs --physical` はその後に `--relaunch` しません（すると出力の取れないプロセスに入れ替わる）。
+- **ローカルネットワークの許可。** 各アプリの最初の検索で許可を求められます。計測の前に一度ずつ検索して「許可」を押しておきます
+  （許可のダイアログが出ている間はランナーの操作がタイムアウトします）。
 
 ### 1 回分のシナリオ
 

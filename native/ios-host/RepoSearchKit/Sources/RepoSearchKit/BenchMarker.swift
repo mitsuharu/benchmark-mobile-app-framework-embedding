@@ -9,6 +9,9 @@ enum BenchMarker {
   static func mark(_ name: String, at date: Date = Date()) {
     let epochMs = Int64((date.timeIntervalSince1970 * 1000).rounded())
     logger.notice("BENCH|\(name, privacy: .public)|\(epochMs, privacy: .public)")
+    // On a physical iPhone the app log carries only the process's own output,
+    // not unified logging, so the line goes to stderr as well.
+    fputs("BENCH|\(name)|\(epochMs)\n", stderr)
   }
 
   /// Marks once the frame that is being built has been committed: SwiftUI

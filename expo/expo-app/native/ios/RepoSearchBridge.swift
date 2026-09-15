@@ -19,6 +19,9 @@ public enum BenchMarkerRelay {
       // Interpolated values are redacted as <private> in release builds
       // unless they are explicitly public.
       logger.notice("\(line, privacy: .public)")
+      // On a physical iPhone the app log carries only the process's own
+      // output, not unified logging, so the line goes to stderr as well.
+      fputs("\(line)\n", stderr)
     }
   }
 

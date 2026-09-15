@@ -5,14 +5,26 @@
 
 const MARKER = /BENCH\|([A-Za-z]+)\|(\d+)/
 
-/** Every marker found in a log, in the order it was written. */
+/**
+ * Every marker found in a log, in the order it was written. iOS apps write
+ * each marker both to unified logging and to stderr (a physical iPhone's log
+ * only has the latter), so a log can hold the same marker twice; repeats of
+ * the same name and time are kept once.
+ */
 export function parseMarkers(log) {
   const markers = []
+  const seen = new Set()
   for (const line of log.split('\n')) {
     const match = MARKER.exec(line)
-    if (match) {
-      markers.push({ name: match[1], epochMs: Number(match[2]) })
+    if (!match) {
+      continue
     }
+    const key = `${match[1]}|${match[2]}`
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+    markers.push({ name: match[1], epochMs: Number(match[2]) })
   }
   return markers
 }

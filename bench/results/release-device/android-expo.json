@@ -1,0 +1,226 @@
+{
+  "framework": "expo",
+  "platform": "android",
+  "build": "release",
+  "physical": true,
+  "appId": "com.example.sample.expo.brownfield.host",
+  "device": {
+    "name": "P780",
+    "id": "26eab1c3"
+  },
+  "measuredAt": "2026-09-15T05:58:37.135Z",
+  "agentDevice": "0.21.1",
+  "iterations": 5,
+  "warmup": 1,
+  "appSizeBytes": 59300811,
+  "summary": {
+    "timingsMs": {
+      "coldStartMs": {
+        "n": 5,
+        "median": 198,
+        "mean": 194.8,
+        "min": 185,
+        "max": 200,
+        "stdev": 5.418486873657626
+      },
+      "embedOpenColdMs": {
+        "n": 5,
+        "median": 273,
+        "mean": 269,
+        "min": 243,
+        "max": 297,
+        "stdev": 18.01110768387108
+      },
+      "embedOpenWarmMs": {
+        "n": 5,
+        "median": 71,
+        "mean": 79,
+        "min": 62,
+        "max": 97,
+        "stdev": 14.601369798755183
+      },
+      "searchRenderMs": {
+        "n": 5,
+        "median": 230,
+        "mean": 240.4,
+        "min": 201,
+        "max": 312,
+        "stdev": 37.64359175211632
+      },
+      "searchToHostMs": {
+        "n": 5,
+        "median": 136,
+        "mean": 144,
+        "min": 115,
+        "max": 195,
+        "stdev": 26.914680009244027
+      },
+      "commandMs": {
+        "n": 5,
+        "median": 40,
+        "mean": 38.4,
+        "min": 30,
+        "max": 46,
+        "stdev": 6.374950980203691
+      }
+    },
+    "memoryKb": {
+      "hostIdle": {
+        "n": 5,
+        "median": 46443,
+        "mean": 46277.8,
+        "min": 45352,
+        "max": 46777,
+        "stdev": 527.5495806083064
+      },
+      "embedOpened": {
+        "n": 5,
+        "median": 71663,
+        "mean": 71265,
+        "min": 68969,
+        "max": 72270,
+        "stdev": 1176.2290593247558
+      },
+      "afterSearch": {
+        "n": 5,
+        "median": 96196,
+        "mean": 94873.4,
+        "min": 88988,
+        "max": 96697,
+        "stdev": 2957.7892825554695
+      },
+      "backToHost": {
+        "n": 5,
+        "median": 89022,
+        "mean": 86296.6,
+        "min": 81662,
+        "max": 89484,
+        "stdev": 3706.6259374261117
+      }
+    },
+    "startupRoundtripMs": {
+      "n": 5,
+      "median": 1262,
+      "mean": 1250.8,
+      "min": 1162,
+      "max": 1340,
+      "stdev": 71.4937759528758
+    }
+  },
+  "runs": [
+    {
+      "index": 0,
+      "warmup": true,
+      "startupRoundtripMs": 2047,
+      "memoryKb": {
+        "hostIdle": 54465,
+        "embedOpened": 78556,
+        "afterSearch": 101750,
+        "backToHost": 94451
+      },
+      "timings": {
+        "coldStartMs": 209,
+        "embedOpenColdMs": 322,
+        "embedOpenWarmMs": 69,
+        "searchRenderMs": 396,
+        "searchToHostMs": 270,
+        "commandMs": 60
+      }
+    },
+    {
+      "index": 1,
+      "warmup": false,
+      "startupRoundtripMs": 1314,
+      "memoryKb": {
+        "hostIdle": 46443,
+        "embedOpened": 71910,
+        "afterSearch": 96196,
+        "backToHost": 89022
+      },
+      "timings": {
+        "coldStartMs": 200,
+        "embedOpenColdMs": 297,
+        "embedOpenWarmMs": 96,
+        "searchRenderMs": 312,
+        "searchToHostMs": 195,
+        "commandMs": 44
+      }
+    },
+    {
+      "index": 2,
+      "warmup": false,
+      "startupRoundtripMs": 1262,
+      "memoryKb": {
+        "hostIdle": 46777,
+        "embedOpened": 72270,
+        "afterSearch": 96616,
+        "backToHost": 89484
+      },
+      "timings": {
+        "coldStartMs": 198,
+        "embedOpenColdMs": 243,
+        "embedOpenWarmMs": 62,
+        "searchRenderMs": 201,
+        "searchToHostMs": 115,
+        "commandMs": 32
+      }
+    },
+    {
+      "index": 3,
+      "warmup": false,
+      "startupRoundtripMs": 1162,
+      "memoryKb": {
+        "hostIdle": 46743,
+        "embedOpened": 71513,
+        "afterSearch": 96697,
+        "backToHost": 89453
+      },
+      "timings": {
+        "coldStartMs": 185,
+        "embedOpenColdMs": 273,
+        "embedOpenWarmMs": 71,
+        "searchRenderMs": 224,
+        "searchToHostMs": 140,
+        "commandMs": 30
+      }
+    },
+    {
+      "index": 4,
+      "warmup": false,
+      "startupRoundtripMs": 1340,
+      "memoryKb": {
+        "hostIdle": 46074,
+        "embedOpened": 71663,
+        "afterSearch": 95870,
+        "backToHost": 81662
+      },
+      "timings": {
+        "coldStartMs": 198,
+        "embedOpenColdMs": 274,
+        "embedOpenWarmMs": 97,
+        "searchRenderMs": 235,
+        "searchToHostMs": 136,
+        "commandMs": 40
+      }
+    },
+    {
+      "index": 5,
+      "warmup": false,
+      "startupRoundtripMs": 1176,
+      "memoryKb": {
+        "hostIdle": 45352,
+        "embedOpened": 68969,
+        "afterSearch": 88988,
+        "backToHost": 81862
+      },
+      "timings": {
+        "coldStartMs": 193,
+        "embedOpenColdMs": 258,
+        "embedOpenWarmMs": 69,
+        "searchRenderMs": 230,
+        "searchToHostMs": 134,
+        "commandMs": 46
+      }
+    }
+  ]
+}

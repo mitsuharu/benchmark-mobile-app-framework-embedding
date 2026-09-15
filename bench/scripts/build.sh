@@ -4,7 +4,7 @@
 # bench/artifacts/<build>/<framework>/<platform>: a build that sends its
 # searches to bench/mock-server.
 #
-#   ./scripts/build.sh <native|kmp|flutter|expo> <ios|android> [release|debug]
+#   ./scripts/build.sh <native|kmp|flutter|expo> <ios|android> [release|debug] [simulator|device]
 #
 # release (the default) is what the main results compare. debug builds every
 # part the way a developer runs it day to day: Xcode's Debug configuration,
@@ -14,16 +14,30 @@
 #
 # iOS produces an app for the simulator, Android an APK (the release one is
 # signed with the debug key and shrunk by R8), which is what run.mjs installs.
+#
+# `device` builds iOS for a physical iPhone into <platform>-device/: signed
+# with the team in BENCH_IOS_TEAM_ID, and searching the mock server on the
+# Mac's LAN address (BENCH_IOS_DEVICE_API_BASE_URL overrides it), since an
+# iPhone cannot reach the Mac's loopback. Flutter can then use its release
+# (AOT) frameworks. Android devices run the same APK as the emulator.
 
 set -euo pipefail
 
 FRAMEWORK="${1:?framework: native, kmp, flutter or expo}"
 PLATFORM="${2:?platform: ios or android}"
 BUILD="${3:-release}"
+TARGET="${4:-simulator}"
 case "$BUILD" in
   release | debug) ;;
   *)
     echo "build: release or debug" >&2
+    exit 1
+    ;;
+esac
+case "$TARGET" in
+  simulator | device) ;;
+  *)
+    echo "target: simulator or device" >&2
     exit 1
     ;;
 esac
@@ -40,6 +54,18 @@ OUT="$ROOT/bench/artifacts/$BUILD/$FRAMEWORK/$PLATFORM"
 IOS_API_BASE_URL="http://127.0.0.1:8787"
 ANDROID_API_BASE_URL="http://127.0.0.1:8787"
 
+IOS_SDK=iphonesimulator
+IOS_DESTINATION='generic/platform=iOS Simulator'
+IOS_SIGNING=(CODE_SIGNING_ALLOWED=NO)
+if [[ "$PLATFORM" == "ios" && "$TARGET" == "device" ]]; then
+  : "${BENCH_IOS_TEAM_ID:?set BENCH_IOS_TEAM_ID to the Apple Developer team that signs device builds}"
+  OUT="$OUT-device"
+  IOS_SDK=iphoneos
+  IOS_DESTINATION='generic/platform=iOS'
+  IOS_SIGNING=(-allowProvisioningUpdates DEVELOPMENT_TEAM="$BENCH_IOS_TEAM_ID" CODE_SIGN_STYLE=Automatic)
+  IOS_API_BASE_URL="${BENCH_IOS_DEVICE_API_BASE_URL:-http://$(ipconfig getifaddr en0):8787}"
+fi
+
 build_ios_host() {
   local host="$1"
   # How the project is generated; some hosts pick their framework's build.
@@ -48,7 +74,7 @@ build_ios_host() {
     -project "$host/HostApp.xcodeproj"
     -scheme HostApp
     -configuration "$CONFIG"
-    -sdk iphonesimulator
+    -sdk "$IOS_SDK"
     # Every host app is called HostApp and several frameworks are called
     # RepoSearchKit. With a custom Build Location in Xcode's settings (which
     # -derivedDataPath does not override), all of them would land in one
@@ -60,9 +86,9 @@ build_ios_host() {
 
   (cd "$host" && $generate)
   xcodebuild build "${settings[@]}" \
-    -destination 'generic/platform=iOS Simulator' \
+    -destination "$IOS_DESTINATION" \
     BENCH_API_BASE_URL="$IOS_API_BASE_URL" \
-    CODE_SIGNING_ALLOWED=NO \
+    "${IOS_SIGNING[@]}" \
     -quiet
 
   local dir
@@ -120,10 +146,17 @@ case "$FRAMEWORK/$PLATFORM" in
   flutter/ios)
     # Release (AOT) Flutter has no Dart code in its simulator slice, so the
     # simulator can only run the Debug (JIT) frameworks, whichever build the
-    # host app is. See flutter/README.md.
+    # host app is. See flutter/README.md. A device runs the matching mode.
+    mode=Debug
+    [[ "$TARGET" == "device" ]] && mode="$CONFIG"
+    if [[ "$mode" == "Release" ]]; then
+      modes=(--no-debug --no-profile --release)
+    else
+      modes=(--debug --no-profile --no-release)
+    fi
     (cd "$ROOT/flutter/flutter_module" &&
-      fvm flutter build ios-framework --debug --no-profile --no-release --no-codesign --output=../ios-host/Flutter)
-    build_ios_host "$ROOT/flutter/ios-host" "./scripts/generate.sh Debug"
+      fvm flutter build ios-framework "${modes[@]}" --no-codesign --output=../ios-host/Flutter)
+    build_ios_host "$ROOT/flutter/ios-host" "./scripts/generate.sh $mode"
     ;;
   flutter/android)
     if [[ "$BUILD" == "release" ]]; then

@@ -1,0 +1,64 @@
+name: HostApp
+options:
+  bundleIdPrefix: com.example.benchmark.native
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "16.4"
+
+packages:
+  # The search screen lives in its own local package, the same shape the
+  # other implementations ship their embedded screen in (an xcframework or
+  # Swift Package next to the host app).
+  RepoSearchKit:
+    path: RepoSearchKit
+
+targets:
+  HostApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: HostApp
+    info:
+      path: HostApp/Info.plist
+      properties:
+        CFBundleDisplayName: Native Host
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # Lets the benchmark build reach bench/mock-server over plain http on
+        # the loopback address. Remote hosts still require https.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSAllowsLocalNetworking: true
+        # Empty means the real GitHub API; see AppConfig.swift.
+        BenchAPIBaseURL: $(BENCH_API_BASE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.native.host
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        # Overridden on the xcodebuild command line by the benchmark build,
+        # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787
+        BENCH_API_BASE_URL: ""
+    dependencies:
+      - package: RepoSearchKit
+    scheme:
+      testTargets:
+        - HostAppTests
+
+  HostAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: HostAppTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.native.host.tests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: HostApp
+      - package: RepoSearchKit

@@ -112,7 +112,13 @@ Flutter 3.47 のリリース / プロファイル用の `App.xcframework` はシ
 デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 1500
@@ -120,7 +126,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 1000
@@ -158,7 +170,13 @@ xychart-beta horizontal
 デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 2000
@@ -166,7 +184,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 2500
@@ -223,7 +247,13 @@ xychart-beta horizontal
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 1500
@@ -231,7 +261,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 500
@@ -282,7 +318,13 @@ xychart-beta horizontal
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 200
@@ -290,7 +332,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 2000
@@ -390,7 +438,13 @@ Android はエミュレータと同じ APK です。各プラットフォーム�
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 1000
@@ -398,7 +452,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 250
@@ -449,7 +509,13 @@ xychart-beta horizontal
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "コールドスタート（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 250
@@ -457,7 +523,13 @@ xychart-beta horizontal
 ```
 
 ```mermaid
-xychart-beta horizontal
+---
+config:
+  xyChart:
+    width: 600
+    height: 300
+---
+xychart-beta
   title "埋め込み画面の表示・初回（ms）"
   x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
   y-axis "ms" 0 --> 300

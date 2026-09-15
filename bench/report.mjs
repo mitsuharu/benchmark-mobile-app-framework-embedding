@@ -116,7 +116,8 @@ function niceCeil(value) {
 /**
  * One timing for every framework as a Mermaid bar chart, which GitHub draws
  * in its light and dark themes. One series in one color: the title names it,
- * and the table below carries every value.
+ * and the table below carries every value. Vertical bars in a short, wide
+ * chart: GitHub's chart frame cut a horizontal one off after the first bar.
  */
 function barChart(title, frameworks, values) {
   const labels = frameworks.map(
@@ -124,7 +125,13 @@ function barChart(title, frameworks, values) {
   )
   return [
     '```mermaid',
-    'xychart-beta horizontal',
+    '---',
+    'config:',
+    '  xyChart:',
+    '    width: 600',
+    '    height: 300',
+    '---',
+    'xychart-beta',
     `  title "${title}"`,
     `  x-axis [${labels.join(', ')}]`,
     `  y-axis "ms" 0 --> ${niceCeil(Math.max(...values))}`,

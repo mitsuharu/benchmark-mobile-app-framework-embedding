@@ -1,4 +1,27 @@
-# sample-expo-brownfield
+# expo
+
+ベンチマークの Expo（expo-brownfield）版です。
+[sample-expo-brownfield](https://github.com/mitsuharu/sample-expo-brownfield)
+（[`ab56914`](https://github.com/mitsuharu/sample-expo-brownfield/commit/ab56914)）の
+`expo-app/` `ios-host/` `android-host/` `docs/` をこのディレクトリに複製し、計測に必要な分だけ手を加えています。
+
+## 元のサンプルからの変更点
+
+計測の条件を他の実装（[AGENTS.md](../AGENTS.md)）と揃えるための変更です。画面と連携の仕組みは元のままです。
+
+| 変更 | 場所 | 理由 |
+| --- | --- | --- |
+| 計測マーカー（`BENCH\|<name>\|<epochMs>`）を出す | JS: `src/native/bridge.ts` の `markBench` / `markAfterFrame`、画面の `useEffect`<br>ネイティブ: `native/*/RepoSearchBridge.*` の `BenchMarkerRelay`、各ホスト | 時間をアプリ内で測るため。JS はリリースビルドでネイティブのログに書けないので、メッセージで送ってネイティブ側が書く |
+| API のベース URL を `initialProps` の `apiBaseUrl` で渡す | `App.tsx`、`src/api/github.ts`、各ホスト | 計測時に bench/mock-server を向けるため。既定は本物の GitHub API |
+| Android でも React Native をアプリ起動時に初期化する | `android-host/.../HostApplication.kt` | iOS（`HostApp.init`）と揃えるため。元は RN 画面の Activity で初めて初期化していた |
+| Android の Release で R8 を有効にし、デバッグ鍵で署名する | `android-host/app/build.gradle.kts` | 全実装をリリース構成で測るため |
+| 埋め込み画面を開くボタンに識別子を付け、タップ時刻を記録できる形にする | 各ホストの画面 | agent-device で操作するため |
+
+以下は元のサンプルの README です（パスは `expo/` からの相対パスとして読んでください）。
+
+---
+
+## sample-expo-brownfield
 
 Expo アプリを **既存のネイティブアプリに組み込む（Brownfield）** ためのサンプルです。
 

@@ -205,11 +205,12 @@ npx expo-brownfield build:ios --release --package RepoSearchKitPackage
 ## 4. ホストアプリから使う
 
 ```bash
-cd ios-host && xcodegen generate && open HostApp.xcodeproj
+cd ios-host && ./scripts/generate.sh && open HostApp.xcodeproj
 ```
 
-`project.yml` は `../expo-app/artifacts/RepoSearchKitPackage-release` を
+`project.yml` は `../expo-app/artifacts/RepoSearchKitPackage-<release|debug>` を
 ローカル Swift Package として参照しているので、**先に手順 3 を実行しておく必要があります**。
+`./scripts/generate.sh` は release を、`./scripts/generate.sh debug` は `brownfield:ios:debug` の成果物を使います。
 Xcode で手動で追加する場合は **File → Add Package Dependencies → Add Local** から
 同じディレクトリを選びます。
 

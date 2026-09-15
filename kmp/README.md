@@ -50,7 +50,7 @@ cd kmp/shared
 
 ```bash
 cd kmp/ios-host
-xcodegen generate
+./scripts/generate.sh          # release の XCFramework を使う（debug: ./scripts/generate.sh debug）
 xcodebuild test -project HostApp.xcodeproj -scheme HostApp \
   -destination 'platform=iOS Simulator,name=iPhone 17'
 ```

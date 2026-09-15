@@ -1,0 +1,225 @@
+{
+  "framework": "expo",
+  "platform": "ios",
+  "build": "debug",
+  "appId": "com.example.sample.expo.brownfield.host",
+  "device": {
+    "name": "iPhone 17",
+    "id": "DDB021A1-E3DE-4F7B-BAD5-165E06726C63"
+  },
+  "measuredAt": "2026-09-15T05:48:34.497Z",
+  "agentDevice": "0.21.1",
+  "iterations": 5,
+  "warmup": 1,
+  "appSizeBytes": 180106829,
+  "summary": {
+    "timingsMs": {
+      "coldStartMs": {
+        "n": 5,
+        "median": 1356,
+        "mean": 1553.4,
+        "min": 1178,
+        "max": 1986,
+        "stdev": 336.4447057095712
+      },
+      "embedOpenColdMs": {
+        "n": 5,
+        "median": 979,
+        "mean": 1003.6,
+        "min": 922,
+        "max": 1077,
+        "stdev": 57.53468519076124
+      },
+      "embedOpenWarmMs": {
+        "n": 5,
+        "median": 65,
+        "mean": 67.8,
+        "min": 64,
+        "max": 81,
+        "stdev": 6.615134163416491
+      },
+      "searchRenderMs": {
+        "n": 5,
+        "median": 42,
+        "mean": 44.2,
+        "min": 41,
+        "max": 52,
+        "stdev": 4.019950248448356
+      },
+      "searchToHostMs": {
+        "n": 5,
+        "median": 17,
+        "mean": 18.4,
+        "min": 17,
+        "max": 22,
+        "stdev": 1.9595917942265424
+      },
+      "commandMs": {
+        "n": 5,
+        "median": 11,
+        "mean": 11.4,
+        "min": 11,
+        "max": 12,
+        "stdev": 0.48989794855663565
+      }
+    },
+    "memoryKb": {
+      "hostIdle": {
+        "n": 5,
+        "median": 297952,
+        "mean": 297744,
+        "min": 297200,
+        "max": 298192,
+        "stdev": 379.84417857853236
+      },
+      "embedOpened": {
+        "n": 5,
+        "median": 460128,
+        "mean": 460425.6,
+        "min": 459024,
+        "max": 461616,
+        "stdev": 929.4664275808998
+      },
+      "afterSearch": {
+        "n": 5,
+        "median": 481664,
+        "mean": 481814.4,
+        "min": 480896,
+        "max": 483056,
+        "stdev": 866.5207672064184
+      },
+      "backToHost": {
+        "n": 5,
+        "median": 495360,
+        "mean": 495385.6,
+        "min": 494400,
+        "max": 496320,
+        "stdev": 747.6367032188829
+      }
+    },
+    "startupRoundtripMs": {
+      "n": 5,
+      "median": 1650,
+      "mean": 1842,
+      "min": 1476,
+      "max": 2272,
+      "stdev": 327.2949739913523
+    }
+  },
+  "runs": [
+    {
+      "index": 0,
+      "warmup": true,
+      "startupRoundtripMs": 1837,
+      "memoryKb": {
+        "hostIdle": 298240,
+        "embedOpened": 462496,
+        "afterSearch": 484208,
+        "backToHost": 497984
+      },
+      "timings": {
+        "coldStartMs": 1550,
+        "embedOpenColdMs": 1071,
+        "embedOpenWarmMs": 64,
+        "searchRenderMs": 83,
+        "searchToHostMs": 22,
+        "commandMs": 8
+      }
+    },
+    {
+      "index": 1,
+      "warmup": false,
+      "startupRoundtripMs": 2272,
+      "memoryKb": {
+        "hostIdle": 297952,
+        "embedOpened": 461616,
+        "afterSearch": 483056,
+        "backToHost": 496112
+      },
+      "timings": {
+        "coldStartMs": 1986,
+        "embedOpenColdMs": 1061,
+        "embedOpenWarmMs": 64,
+        "searchRenderMs": 52,
+        "searchToHostMs": 22,
+        "commandMs": 11
+      }
+    },
+    {
+      "index": 2,
+      "warmup": false,
+      "startupRoundtripMs": 1476,
+      "memoryKb": {
+        "hostIdle": 298192,
+        "embedOpened": 460080,
+        "afterSearch": 480912,
+        "backToHost": 494400
+      },
+      "timings": {
+        "coldStartMs": 1178,
+        "embedOpenColdMs": 922,
+        "embedOpenWarmMs": 65,
+        "searchRenderMs": 41,
+        "searchToHostMs": 17,
+        "commandMs": 12
+      }
+    },
+    {
+      "index": 3,
+      "warmup": false,
+      "startupRoundtripMs": 1613,
+      "memoryKb": {
+        "hostIdle": 297392,
+        "embedOpened": 460128,
+        "afterSearch": 481664,
+        "backToHost": 495360
+      },
+      "timings": {
+        "coldStartMs": 1316,
+        "embedOpenColdMs": 979,
+        "embedOpenWarmMs": 81,
+        "searchRenderMs": 42,
+        "searchToHostMs": 17,
+        "commandMs": 12
+      }
+    },
+    {
+      "index": 4,
+      "warmup": false,
+      "startupRoundtripMs": 2199,
+      "memoryKb": {
+        "hostIdle": 297984,
+        "embedOpened": 461280,
+        "afterSearch": 482544,
+        "backToHost": 496320
+      },
+      "timings": {
+        "coldStartMs": 1931,
+        "embedOpenColdMs": 1077,
+        "embedOpenWarmMs": 65,
+        "searchRenderMs": 42,
+        "searchToHostMs": 17,
+        "commandMs": 11
+      }
+    },
+    {
+      "index": 5,
+      "warmup": false,
+      "startupRoundtripMs": 1650,
+      "memoryKb": {
+        "hostIdle": 297200,
+        "embedOpened": 459024,
+        "afterSearch": 480896,
+        "backToHost": 494736
+      },
+      "timings": {
+        "coldStartMs": 1356,
+        "embedOpenColdMs": 979,
+        "embedOpenWarmMs": 64,
+        "searchRenderMs": 44,
+        "searchToHostMs": 19,
+        "commandMs": 11
+      }
+    }
+  ]
+}

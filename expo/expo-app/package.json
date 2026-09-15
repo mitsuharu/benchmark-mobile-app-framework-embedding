@@ -38,7 +38,8 @@
     "brownfield:ios": "expo-brownfield build:ios --release --package RepoSearchKitPackage",
     "brownfield:ios:debug": "expo-brownfield build:ios --debug --package RepoSearchKitPackage",
     "brownfield:ios:xcframeworks": "expo-brownfield build:ios --release",
-    "brownfield:android": "expo-brownfield build:android --release"
+    "brownfield:android": "expo-brownfield build:android --release",
+    "brownfield:android:debug": "expo-brownfield build:android --debug"
   },
   "private": true,
   "jest": {

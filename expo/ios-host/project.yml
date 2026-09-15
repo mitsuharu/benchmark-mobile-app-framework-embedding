@@ -6,11 +6,12 @@ options:
     iOS: "16.4"
 
 packages:
-  # Produced by `npm run brownfield:ios` in ../expo-app.
-  # The `-release` suffix comes from expo-brownfield: precompiled builds emit
-  # one Swift Package per build configuration.
+  # Produced by `npm run brownfield:ios` (or `brownfield:ios:debug`) in
+  # ../expo-app. The `-release` / `-debug` suffix comes from expo-brownfield:
+  # precompiled builds emit one Swift Package per build configuration.
+  # scripts/generate.sh picks which one.
   RepoSearchKitPackage:
-    path: ../expo-app/artifacts/RepoSearchKitPackage-release
+    path: ../expo-app/artifacts/RepoSearchKitPackage-${EXPO_PACKAGE_BUILD}
 
 targets:
   HostApp:
@@ -31,6 +32,10 @@ targets:
           NSAllowsArbitraryLoads: false
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Allows the React Native screen to connect to the Metro bundler during development.
+        # React Native's StatusBar module (used by expo-status-bar) sets the
+        # status bar app-wide; in a debug build it shows a red error screen
+        # over the React Native view unless this is NO.
+        UIViewControllerBasedStatusBarAppearance: false
         # Handed to the React Native screen as `apiBaseUrl`. Empty means the
         # real GitHub API; see AppConfig.swift.
         BenchAPIBaseURL: $(BENCH_API_BASE_URL)
@@ -48,7 +53,7 @@ targets:
         BENCH_API_BASE_URL: ""
     dependencies:
       - package: RepoSearchKitPackage
-        product: RepoSearchKitPackage-release
+        product: RepoSearchKitPackage-${EXPO_PACKAGE_BUILD}
     scheme:
       testTargets:
         - HostAppTests

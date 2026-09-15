@@ -44,13 +44,14 @@ class RepoSearchActivity : BrownfieldActivity() {
 
     val keyword = intent.getStringExtra(EXTRA_KEYWORD) ?: DEFAULT_KEYWORD
 
+    // Already done by HostApplication at launch; the call returns straight away.
     ReactNativeHostManager.shared.initialize(application)
     val reactNativeView =
       ReactNativeViewFactory.createFrameLayout(
         this,
         this,
         ROOT_COMPONENT,
-        bundleOf(EXTRA_KEYWORD to keyword),
+        bundleOf(EXTRA_KEYWORD to keyword, PROP_API_BASE_URL to AppConfig.apiBaseUrl),
       )
     setContentView(withKeywordBar(reactNativeView))
     setUpNativeBackHandling()
@@ -83,7 +84,10 @@ class RepoSearchActivity : BrownfieldActivity() {
           addView(
             Button(this@RepoSearchActivity).apply {
               text = preset
-              setOnClickListener { bridge.send(RepoSearchCommand.SetKeyword(preset)) }
+              setOnClickListener {
+                BenchMarker.mark("commandSent")
+                bridge.send(RepoSearchCommand.SetKeyword(preset))
+              }
             }
           )
         }
@@ -120,6 +124,9 @@ class RepoSearchActivity : BrownfieldActivity() {
 
     const val EXTRA_KEYWORD = "keyword"
     const val DEFAULT_KEYWORD = "expo"
+
+    /** Where the React Native screen searches; see `RootProps` in src/native/bridge.ts. */
+    private const val PROP_API_BASE_URL = "apiBaseUrl"
     private const val ROOT_COMPONENT = "main"
 
     fun createIntent(context: Context, keyword: String): Intent =

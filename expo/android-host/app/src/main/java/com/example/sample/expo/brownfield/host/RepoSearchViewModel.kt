@@ -36,6 +36,7 @@ class RepoSearchViewModel : ViewModel(), RepoSearchListener {
   override fun onRepoSearchEvent(event: RepoSearchEvent) {
     when (event) {
       is RepoSearchEvent.Succeeded -> {
+        BenchMarker.mark("resultsReceived")
         lastKeyword = event.keyword
         repositories = event.repositories
         errorMessage = null

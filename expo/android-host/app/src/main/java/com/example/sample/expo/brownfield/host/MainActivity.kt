@@ -16,8 +16,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -26,11 +32,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
  * Native, and the results come back through `RepoSearchBridge`.
  */
 class MainActivity : ComponentActivity() {
+  @OptIn(ExperimentalComposeUiApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
       MaterialTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+        Scaffold(
+          // Exposes testTag as the resource-id the benchmark runner selects by.
+          modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }
+        ) { innerPadding ->
           HostScreen(modifier = Modifier.padding(innerPadding))
         }
       }
@@ -41,6 +51,12 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun HostScreen(modifier: Modifier = Modifier, viewModel: RepoSearchViewModel = viewModel()) {
   val context = LocalContext.current
+
+  // Resumes on the frame after the first one, i.e. once it has been drawn.
+  LaunchedEffect(Unit) {
+    withFrameNanos {}
+    BenchMarker.markLaunch()
+  }
 
   Column(
     modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
@@ -55,17 +71,19 @@ private fun HostScreen(modifier: Modifier = Modifier, viewModel: RepoSearchViewM
     OutlinedTextField(
       value = viewModel.keyword,
       onValueChange = { viewModel.keyword = it },
+      placeholder = { Text("keyword") },
       singleLine = true,
-      modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+      modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("keywordField"),
     )
 
     Button(
       onClick = {
+        BenchMarker.mark("embedOpenTapped")
         context.startActivity(
           RepoSearchActivity.createIntent(context, viewModel.effectiveKeyword)
         )
       },
-      modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+      modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("openEmbedded"),
     ) {
       Text("React Native 画面を開く")
     }

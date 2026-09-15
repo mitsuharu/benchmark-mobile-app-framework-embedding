@@ -14,16 +14,29 @@ android {
     targetSdk = 36
     versionCode = 1
     versionName = "1.0"
+
+    // Handed to the React Native screen as `apiBaseUrl`. Empty means the real
+    // GitHub API. The benchmark build passes
+    // -PbenchApiBaseUrl=http://10.0.2.2:8787 to reach bench/mock-server.
+    val apiBaseUrl = providers.gradleProperty("benchApiBaseUrl").getOrElse("")
+    buildConfigField("String", "BENCH_API_BASE_URL", "\"$apiBaseUrl\"")
   }
 
   buildTypes {
     release {
-      isMinifyEnabled = false
+      // R8 as in any shipping app; every implementation is measured with it.
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      // Signed with the debug key so the release build installs on an emulator.
+      signingConfig = signingConfigs.getByName("debug")
     }
   }
 
-  buildFeatures { compose = true }
+  buildFeatures {
+    compose = true
+    buildConfig = true
+  }
 
   // Robolectric provides Looper/Context, so the bridge and the Activity glue
   // can be covered by plain unit tests instead of instrumentation tests.

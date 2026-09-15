@@ -1,0 +1,5 @@
+# Benchmark builds produced by scripts/build.sh
+artifacts/
+
+# Trial runs; the measured results under results/ are committed.
+results/trial/

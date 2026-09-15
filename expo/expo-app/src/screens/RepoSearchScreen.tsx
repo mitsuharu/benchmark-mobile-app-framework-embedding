@@ -1,5 +1,5 @@
 import { popToNative } from 'expo-brownfield'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
@@ -16,16 +16,22 @@ import { ActionButton } from '../components/ActionButton'
 import { RepositoryRow } from '../components/RepositoryRow'
 import {
   addKeywordListener,
+  markAfterFrame,
+  markBench,
   notifySearchFailed,
   notifySearchSucceeded,
 } from '../native/bridge'
 
+const PER_PAGE = 20
+
 type Props = {
   /** Handed over by the host app through `initialProps`. */
   initialKeyword: string
+  /** Handed over by the host app through `initialProps`. */
+  apiBaseUrl: string
 }
 
-export function RepoSearchScreen({ initialKeyword }: Props) {
+export function RepoSearchScreen({ initialKeyword, apiBaseUrl }: Props) {
   // initialProps only arrives while the host app is creating this screen, so
   // replacing the keyword on an open screen comes over the message channel.
   const [keyword, setKeyword] = useState(initialKeyword)
@@ -43,11 +49,30 @@ export function RepoSearchScreen({ initialKeyword }: Props) {
     [],
   )
 
+  // Benchmark markers (see AGENTS.md). Effects run after React has committed
+  // the change; markAfterFrame waits for it to be drawn.
+  useEffect(() => markAfterFrame('embedFirstFrame'), [])
+  useEffect(() => {
+    if (repositories.length > 0) {
+      markAfterFrame('searchRendered')
+    }
+  }, [repositories])
+  const isInitialKeyword = useRef(true)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs whenever the keyword changes
+  useEffect(() => {
+    if (isInitialKeyword.current) {
+      isInitialKeyword.current = false
+      return
+    }
+    markAfterFrame('keywordApplied')
+  }, [keyword])
+
   const onPressSearch = useCallback(async () => {
+    markBench('searchTapped')
     setIsLoading(true)
     setError(null)
     try {
-      const results = await searchRepositories(keyword)
+      const results = await searchRepositories(keyword, PER_PAGE, apiBaseUrl)
       setRepositories(results)
       // Hand the results back to the native host app.
       notifySearchSucceeded(keyword, results)
@@ -59,7 +84,7 @@ export function RepoSearchScreen({ initialKeyword }: Props) {
     } finally {
       setIsLoading(false)
     }
-  }, [keyword])
+  }, [keyword, apiBaseUrl])
 
   return (
     <SafeAreaView style={styles.container}>

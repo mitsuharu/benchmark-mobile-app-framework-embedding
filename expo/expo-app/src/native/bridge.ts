@@ -12,6 +12,8 @@ import type { Repository } from '../api/github'
 /** Props the native host passes in through `initialProps`. */
 export type RootProps = {
   keyword?: string
+  /** Where to search. The benchmark build points this at bench/mock-server. */
+  apiBaseUrl?: string
 }
 
 export const DEFAULT_KEYWORD = 'expo'
@@ -20,6 +22,7 @@ export const DEFAULT_KEYWORD = 'expo'
 export const MessageType = {
   searchSucceeded: 'searchSucceeded',
   searchFailed: 'searchFailed',
+  benchMark: 'benchMark',
 } as const
 
 /** Received from native. */
@@ -78,4 +81,29 @@ export function addKeywordListener(onKeyword: (keyword: string) => void) {
   })
 
   return () => subscription.remove()
+}
+
+/** The markers the screen reports for the benchmark (see AGENTS.md). */
+export type BenchMarkerName =
+  | 'embedFirstFrame'
+  | 'searchTapped'
+  | 'searchRendered'
+  | 'keywordApplied'
+
+/**
+ * Reports a benchmark marker. The time is taken here, on the JS side, and
+ * BenchMarkerRelay in the brownfield artifact writes it to the native log —
+ * JS itself has no access to unified logging or logcat in a release build.
+ */
+export function markBench(name: BenchMarkerName) {
+  sendMessage({ type: MessageType.benchMark, name, epochMs: Date.now() })
+}
+
+/**
+ * Reports a marker once the change that was just committed has been drawn:
+ * a commit is applied to the native views before the next frame, and
+ * `requestAnimationFrame` runs at the start of that frame.
+ */
+export function markAfterFrame(name: BenchMarkerName) {
+  requestAnimationFrame(() => markBench(name))
 }

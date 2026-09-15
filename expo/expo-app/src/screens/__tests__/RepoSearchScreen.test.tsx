@@ -4,6 +4,8 @@ import { popToNative } from 'expo-brownfield'
 import { searchRepositories } from '../../api/github'
 import {
   addKeywordListener,
+  markAfterFrame,
+  markBench,
   notifySearchFailed,
   notifySearchSucceeded,
 } from '../../native/bridge'
@@ -18,7 +20,12 @@ jest.mock('../../native/bridge', () => ({
   notifySearchSucceeded: jest.fn(),
   notifySearchFailed: jest.fn(),
   addKeywordListener: jest.fn(() => () => {}),
+  markBench: jest.fn(),
+  markAfterFrame: jest.fn(),
 }))
+
+/** What the benchmark build hands over through `initialProps`. */
+const API = 'http://127.0.0.1:8787'
 
 const searchMock = searchRepositories as jest.MockedFunction<
   typeof searchRepositories
@@ -48,7 +55,7 @@ describe('RepoSearchScreen', () => {
 
   it('shows the keyword handed over by the host app', async () => {
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo-brownfield" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo-brownfield" />,
     )
 
     expect(getByText('keyword: expo-brownfield')).toBeTruthy()
@@ -56,7 +63,7 @@ describe('RepoSearchScreen', () => {
 
   it('does not search until the button is pressed', async () => {
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     expect(searchMock).not.toHaveBeenCalled()
@@ -66,13 +73,13 @@ describe('RepoSearchScreen', () => {
   it('lists the repositories returned for the keyword', async () => {
     searchMock.mockResolvedValue(results)
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     await fireEvent.press(getByText('リポジトリを検索'))
 
     await waitFor(() => expect(getByText('expo/expo')).toBeTruthy())
-    expect(searchMock).toHaveBeenCalledWith('expo')
+    expect(searchMock).toHaveBeenCalledWith('expo', 20, API)
     expect(getByText('★ 51,842 · TypeScript')).toBeTruthy()
     // A repository with no language shows the star count on its own.
     expect(getByText('★ 0')).toBeTruthy()
@@ -81,7 +88,7 @@ describe('RepoSearchScreen', () => {
   it('reports the results back to the host app', async () => {
     searchMock.mockResolvedValue(results)
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     await fireEvent.press(getByText('リポジトリを検索'))
@@ -95,7 +102,7 @@ describe('RepoSearchScreen', () => {
   it('shows the failure and reports it to the host app', async () => {
     searchMock.mockRejectedValue(new Error('API rate limit exceeded'))
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     await fireEvent.press(getByText('リポジトリを検索'))
@@ -112,7 +119,7 @@ describe('RepoSearchScreen', () => {
 
   it('asks the host app to close the screen', async () => {
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     await fireEvent.press(getByText('ネイティブに戻る'))
@@ -128,7 +135,7 @@ describe('RepoSearchScreen', () => {
     >
     searchMock.mockResolvedValue(results)
     const { getByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
 
     const [onKeyword] = listener.mock.calls[0]
@@ -137,7 +144,9 @@ describe('RepoSearchScreen', () => {
     expect(getByText('keyword: swift')).toBeTruthy()
 
     await fireEvent.press(getByText('リポジトリを検索'))
-    await waitFor(() => expect(searchMock).toHaveBeenCalledWith('swift'))
+    await waitFor(() =>
+      expect(searchMock).toHaveBeenCalledWith('swift', 20, API),
+    )
   })
 
   it('clears the previous results when the keyword is replaced', async () => {
@@ -146,7 +155,7 @@ describe('RepoSearchScreen', () => {
     >
     searchMock.mockResolvedValue(results)
     const { getByText, queryByText } = await render(
-      <RepoSearchScreen initialKeyword="expo" />,
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
     )
     await fireEvent.press(getByText('リポジトリを検索'))
     await waitFor(() => expect(getByText('expo/expo')).toBeTruthy())
@@ -155,5 +164,54 @@ describe('RepoSearchScreen', () => {
     await act(async () => onKeyword('swift'))
 
     expect(queryByText('expo/expo')).toBeNull()
+  })
+})
+
+describe('RepoSearchScreen benchmark markers', () => {
+  beforeEach(() => jest.clearAllMocks())
+
+  it('marks its first frame', async () => {
+    await render(<RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />)
+
+    expect(markAfterFrame).toHaveBeenCalledWith('embedFirstFrame')
+  })
+
+  it('marks the tap and the rendered results of a search', async () => {
+    searchMock.mockResolvedValue(results)
+    const { getByText } = await render(
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
+    )
+
+    await fireEvent.press(getByText('リポジトリを検索'))
+
+    expect(markBench).toHaveBeenCalledWith('searchTapped')
+    await waitFor(() =>
+      expect(markAfterFrame).toHaveBeenCalledWith('searchRendered'),
+    )
+  })
+
+  it('marks a keyword the host replaced, but not the initial one', async () => {
+    const listener = addKeywordListener as jest.MockedFunction<
+      typeof addKeywordListener
+    >
+    await render(<RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />)
+    expect(markAfterFrame).not.toHaveBeenCalledWith('keywordApplied')
+
+    const [onKeyword] = listener.mock.calls[0]
+    await act(async () => onKeyword('swift'))
+
+    expect(markAfterFrame).toHaveBeenCalledWith('keywordApplied')
+  })
+
+  it('does not mark results when a search fails', async () => {
+    searchMock.mockRejectedValue(new Error('API rate limit exceeded'))
+    const { getByText } = await render(
+      <RepoSearchScreen apiBaseUrl={API} initialKeyword="expo" />,
+    )
+
+    await fireEvent.press(getByText('リポジトリを検索'))
+    await waitFor(() => expect(notifySearchFailed).toHaveBeenCalled())
+
+    expect(markAfterFrame).not.toHaveBeenCalledWith('searchRendered')
   })
 })

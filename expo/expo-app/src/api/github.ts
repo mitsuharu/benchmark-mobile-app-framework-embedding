@@ -3,7 +3,7 @@
  * https://docs.github.com/en/rest/search/search#search-repositories
  */
 
-const SEARCH_ENDPOINT = 'https://api.github.com/search/repositories'
+export const DEFAULT_API_BASE_URL = 'https://api.github.com'
 
 export type Repository = {
   id: number
@@ -27,9 +27,14 @@ type SearchResponse = {
   message?: string
 }
 
+/**
+ * @param baseUrl Where to send the request. The benchmark build points this
+ *   at bench/mock-server through `initialProps`.
+ */
 export async function searchRepositories(
   keyword: string,
   perPage: number = 20,
+  baseUrl: string = DEFAULT_API_BASE_URL,
 ): Promise<Repository[]> {
   const query = new URLSearchParams({
     q: keyword,
@@ -38,7 +43,8 @@ export async function searchRepositories(
     per_page: String(perPage),
   })
 
-  const response = await fetch(`${SEARCH_ENDPOINT}?${query.toString()}`, {
+  const endpoint = `${baseUrl.replace(/\/+$/, '')}/search/repositories`
+  const response = await fetch(`${endpoint}?${query.toString()}`, {
     headers: {
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',

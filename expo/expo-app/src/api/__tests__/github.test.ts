@@ -12,6 +12,27 @@ describe('searchRepositories', () => {
     fetchMock.mockResolvedValue({ ok, status, json: async () => body })
   }
 
+  it('sends the request to the configured base url', async () => {
+    // The benchmark build points the client at bench/mock-server.
+    respondWith({ total_count: 0, items: [] })
+
+    await searchRepositories('expo', 20, 'http://127.0.0.1:8787/')
+
+    const [url] = fetchMock.mock.calls[0]
+    const parsed = new URL(url as string)
+    expect(parsed.origin).toBe('http://127.0.0.1:8787')
+    expect(parsed.pathname).toBe('/search/repositories')
+  })
+
+  it('uses the real API by default', async () => {
+    respondWith({ total_count: 0, items: [] })
+
+    await searchRepositories('expo')
+
+    const [url] = fetchMock.mock.calls[0]
+    expect(new URL(url as string).origin).toBe('https://api.github.com')
+  })
+
   it('queries the keyword sorted by stars', async () => {
     respondWith({ total_count: 0, items: [] })
 

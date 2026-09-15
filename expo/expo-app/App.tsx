@@ -1,18 +1,22 @@
 import { StatusBar } from 'expo-status-bar'
 
+import { DEFAULT_API_BASE_URL } from './src/api/github'
 import { DEFAULT_KEYWORD, type RootProps } from './src/native/bridge'
 import { RepoSearchScreen } from './src/screens/RepoSearchScreen'
 
 /**
- * `keyword` comes from the native host app via `initialProps`, e.g.
- * `ReactNativeView(moduleName: "main", initialProps: ["keyword": "swift"])`.
- * It falls back to a default so the app still runs standalone.
+ * `keyword` and `apiBaseUrl` come from the native host app via `initialProps`,
+ * e.g. `ReactNativeView(moduleName: "main", initialProps: ["keyword": "swift"])`.
+ * They fall back to defaults so the app still runs standalone.
  */
-export default function App({ keyword }: RootProps) {
+export default function App({ keyword, apiBaseUrl }: RootProps) {
   return (
     <>
       <StatusBar style="dark" />
-      <RepoSearchScreen initialKeyword={keyword ?? DEFAULT_KEYWORD} />
+      <RepoSearchScreen
+        apiBaseUrl={apiBaseUrl || DEFAULT_API_BASE_URL}
+        initialKeyword={keyword ?? DEFAULT_KEYWORD}
+      />
     </>
   )
 }

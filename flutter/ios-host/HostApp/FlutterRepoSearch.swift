@@ -140,7 +140,8 @@ final class FlutterRepoSearch {
     // On iOS, Flutter builds its accessibility tree only once an assistive
     // technology asks for it, so UI automation (XCTest, agent-device) sees an
     // empty view. React Native and Compose always expose theirs; turning it on
-    // here keeps the screen operable and the work comparable.
+    // here keeps the screen operable and the work comparable. Every later
+    // visit turns it on again (see `SemanticsFlutterViewController`).
     engine.ensureSemanticsEnabled()
 
     let channel = FlutterMethodChannel(

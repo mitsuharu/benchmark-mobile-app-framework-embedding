@@ -142,10 +142,23 @@ private struct FlutterScreen: UIViewControllerRepresentable {
     let runtime = FlutterRepoSearch.shared
     runtime.onClose = onClose
     runtime.prepareScreen(keyword: keyword, apiBaseURL: AppConfig.apiBaseURL)
-    return FlutterViewController(engine: runtime.engine, nibName: nil, bundle: nil)
+    return SemanticsFlutterViewController(engine: runtime.engine, nibName: nil, bundle: nil)
   }
 
   func updateUIViewController(_ uiViewController: FlutterViewController, context: Context) {}
+}
+
+/// A `FlutterViewController` that keeps the accessibility tree on.
+///
+/// When a view controller leaves the cached engine, the engine turns its
+/// semantics off again, so the next visit showed an empty view to UI
+/// automation even though `FlutterRepoSearch.start()` had turned them on.
+/// Turning them on at every appearance keeps every visit operable.
+private final class SemanticsFlutterViewController: FlutterViewController {
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    engine.ensureSemanticsEnabled()
+  }
 }
 
 #Preview {

@@ -127,9 +127,10 @@ jobs:
       - name: Lint Swift
         run: ./scripts/swift-format.sh
 
+      # The runner has no signing identity; the host app signs what it embeds.
       - name: Build the xcframeworks
         working-directory: flutter/flutter_module
-        run: flutter build ios-framework --no-debug --no-profile --output=../ios-host/Flutter
+        run: flutter build ios-framework --no-debug --no-profile --no-codesign --output=../ios-host/Flutter
 
       - name: Generate the host app project
         working-directory: flutter/ios-host

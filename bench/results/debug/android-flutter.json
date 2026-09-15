@@ -5,7 +5,8 @@
   "appId": "com.example.benchmark.flutter.host",
   "device": {
     "name": "bench api36",
-    "id": "emulator-5554"
+    "id": "emulator-5554",
+    "label": "Pixel 9 エミュレータ（API 36）"
   },
   "measuredAt": "2026-09-15T05:42:23.250Z",
   "agentDevice": "0.21.1",

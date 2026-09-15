@@ -4,7 +4,8 @@
   "appId": "com.example.benchmark.flutter.host",
   "device": {
     "name": "iPhone 17",
-    "id": "DDB021A1-E3DE-4F7B-BAD5-165E06726C63"
+    "id": "DDB021A1-E3DE-4F7B-BAD5-165E06726C63",
+    "label": "iPhone 17 シミュレータ（iOS 26.5）"
   },
   "measuredAt": "2026-09-15T03:36:04.817Z",
   "agentDevice": "0.21.1",

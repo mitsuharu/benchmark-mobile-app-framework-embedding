@@ -40,6 +40,8 @@ const { values: options } = parseArgs({
     retries: { type: 'string', default: '2' },
     'settle-ms': { type: 'string', default: '2000' },
     device: { type: 'string' },
+    // How the README names the device, e.g. "iPhone 17 シミュレータ（iOS 26.5）".
+    'device-label': { type: 'string' },
     udid: { type: 'string' },
     serial: { type: 'string' },
     build: { type: 'string', default: 'release' },
@@ -192,7 +194,11 @@ async function measure(framework) {
     build,
     physical,
     appId: id,
-    device: { name: opened.device, id: opened.id },
+    device: {
+      name: opened.device,
+      id: opened.id,
+      ...(options['device-label'] ? { label: options['device-label'] } : {}),
+    },
     measuredAt: new Date().toISOString(),
     agentDevice: await AgentDevice.version(),
     iterations,

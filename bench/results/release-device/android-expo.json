@@ -6,7 +6,8 @@
   "appId": "com.example.sample.expo.brownfield.host",
   "device": {
     "name": "P780",
-    "id": "26eab1c3"
+    "id": "26eab1c3",
+    "label": "Rakuten Hand 5G 実機（Android 11）"
   },
   "measuredAt": "2026-09-15T05:58:37.135Z",
   "agentDevice": "0.21.1",

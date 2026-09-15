@@ -36,6 +36,10 @@ targets:
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1"
         CODE_SIGN_STYLE: Automatic
+        # The XCFramework only carries the Apple silicon simulator slice
+        # (iosSimulatorArm64), so a Release build for the simulator must not
+        # ask for x86_64 as well.
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         # Overridden on the xcodebuild command line by the benchmark build,
         # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787
         BENCH_API_BASE_URL: ""

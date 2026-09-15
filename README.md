@@ -24,6 +24,18 @@
 
 機能の仕様、計測マーカー、コーディング規約は [AGENTS.md](AGENTS.md) にまとめています。
 
+## 動作の様子
+
+計測用ビルド（検索先はモックサーバ）を agent-device で操作した画面の録画です。
+ホスト画面 → 埋め込み画面を開く → 「リポジトリを検索」→ ホストからキーワードを `swift` に差し替える → ネイティブに戻り、受け取った結果を表示する、の順です。
+
+| | native | KMP / CMP | Flutter | Expo |
+| --- | --- | --- | --- | --- |
+| iOS | ![iOS native](docs/media/ios-native.gif) | ![iOS KMP](docs/media/ios-kmp.gif) | ![iOS Flutter](docs/media/ios-flutter.gif) | ![iOS Expo](docs/media/ios-expo.gif) |
+| Android | ![Android native](docs/media/android-native.gif) | ![Android KMP](docs/media/android-kmp.gif) | ![Android Flutter](docs/media/android-flutter.gif) | ![Android Expo](docs/media/android-expo.gif) |
+
+録画は `node bench/demo.mjs` で撮り直せます（[bench/README.md](bench/README.md)）。
+
 ## 計測の方針
 
 - **ビルド**: リリース構成。Expo も EAS ではなくローカルでビルドする。

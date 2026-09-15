@@ -14,6 +14,9 @@ enum BenchMarker {
     // Interpolated values are redacted as <private> in release builds unless
     // they are explicitly public.
     logger.notice("BENCH|\(name, privacy: .public)|\(epochMs, privacy: .public)")
+    // On a physical iPhone the app log carries only the process's own output,
+    // not unified logging, so the line goes to stderr as well.
+    fputs("BENCH|\(name)|\(epochMs)\n", stderr)
   }
 
   /// Marks the first frame of the host screen, together with the moment the

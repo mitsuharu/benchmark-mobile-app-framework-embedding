@@ -21,6 +21,22 @@ describe('parseMarkers', () => {
     // What a Logger interpolation without `privacy: .public` looks like.
     assert.deepEqual(parseMarkers('BENCH|<private>|<private>'), [])
   })
+
+  it('keeps a marker once when it arrives through both unified logging and stderr', () => {
+    const log = [
+      '2026-09-15 10:00:00.000 HostApp[123:456] [bench:marker] BENCH|embedOpenTapped|5000',
+      'BENCH|embedOpenTapped|5000',
+      'BENCH|embedFirstFrame|5300',
+      'BENCH|embedOpenTapped|12000',
+    ].join('\n')
+
+    // The second visit must stay the second embedOpenTapped, not a copy of the first.
+    assert.deepEqual(parseMarkers(log), [
+      { name: 'embedOpenTapped', epochMs: 5000 },
+      { name: 'embedFirstFrame', epochMs: 5300 },
+      { name: 'embedOpenTapped', epochMs: 12000 },
+    ])
+  })
 })
 
 describe('computeTimings', () => {

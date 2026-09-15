@@ -57,6 +57,11 @@ node run.mjs --platform android --framework all --iterations 5
 - デバッグビルドも計測するときは、`./scripts/build.sh <framework> <platform> debug` で作り、
   Expo 用に Metro を起動してから（`cd expo/expo-app && npx expo start`）`--build debug` を付けて実行する。
 - 端末が複数あるときは `--udid <UDID>`（iOS）/ `--serial emulator-5554`（Android）で指定する。
+- 実機も計測するときは `--physical` を付ける（結果は `results/<build>-device/`）。Android はエミュレータと同じ APK、
+  iOS は `BENCH_IOS_TEAM_ID` を設定して `./scripts/build.sh <framework> ios release device` で作る。
+  iPhone 用に LAN のアドレスでもモックサーバを起動し（`npm run mock-server -- --host "$(ipconfig getifaddr en0)"`）、
+  agent-device のランナーの署名に `AGENT_DEVICE_IOS_TEAM_ID` / `AGENT_DEVICE_IOS_BUNDLE_ID` を設定する。
+  端末側の準備は [bench/README.md](../../../bench/README.md) の「実機」を参照。
 - 1 回の計測は「コールド起動 → 埋め込み画面を開く → 検索 → キーワード差し替え → 戻る → もう一度開く → 戻る」。
   最初の 1 回（`--warmup`）はインストール直後の影響があるので集計から外す。
 

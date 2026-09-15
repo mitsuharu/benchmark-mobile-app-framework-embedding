@@ -6,11 +6,12 @@ options:
     iOS: "16.4"
 
 packages:
-  # Produced by `npm run brownfield:ios` in ../expo-app.
-  # The `-release` suffix comes from expo-brownfield: precompiled builds emit
-  # one Swift Package per build configuration.
+  # Produced by `npm run brownfield:ios` (or `brownfield:ios:debug`) in
+  # ../expo-app. The `-release` / `-debug` suffix comes from expo-brownfield:
+  # precompiled builds emit one Swift Package per build configuration.
+  # scripts/generate.sh picks which one.
   RepoSearchKitPackage:
-    path: ../expo-app/artifacts/RepoSearchKitPackage-release
+    path: ../expo-app/artifacts/RepoSearchKitPackage-${EXPO_PACKAGE_BUILD}
 
 targets:
   HostApp:
@@ -48,7 +49,7 @@ targets:
         BENCH_API_BASE_URL: ""
     dependencies:
       - package: RepoSearchKitPackage
-        product: RepoSearchKitPackage-release
+        product: RepoSearchKitPackage-${EXPO_PACKAGE_BUILD}
     scheme:
       testTargets:
         - HostAppTests

@@ -124,7 +124,7 @@ jobs:
         working-directory: expo/ios-host
         run: |
           brew install xcodegen
-          xcodegen generate
+          ./scripts/generate.sh release
 
       - name: Test the host app
         working-directory: expo/ios-host

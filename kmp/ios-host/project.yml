@@ -44,9 +44,10 @@ targets:
         # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787
         BENCH_API_BASE_URL: ""
     dependencies:
-      # Produced by `./gradlew assembleRepoSearchKitReleaseXCFramework` in
-      # ../shared. The framework is static, so it is linked, not embedded.
-      - framework: ../shared/build/XCFrameworks/release/RepoSearchKit.xcframework
+      # Produced by `./gradlew assembleRepoSearchKit<Release|Debug>XCFramework`
+      # in ../shared; scripts/generate.sh picks the build type. The framework
+      # is static, so it is linked, not embedded.
+      - framework: ../shared/build/XCFrameworks/${KMP_FRAMEWORK_BUILD}/RepoSearchKit.xcframework
         embed: false
     scheme:
       testTargets:

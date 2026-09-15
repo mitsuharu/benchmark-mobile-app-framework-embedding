@@ -36,16 +36,6 @@
 
 録画は `node bench/demo.mjs` で撮り直せます（[bench/README.md](bench/README.md)）。
 
-## 計測の方針
-
-- **ビルド**: リリース構成。Expo も EAS ではなくローカルでビルドする。
-  例外は iOS の Flutter で、シミュレータではデバッグ（JIT）の Flutter しか動かないため、それを組み込んでいる（ホストはリリース構成）。
-- **端末**: iOS シミュレータと Android エミュレータ。リリースビルドは実機（iPhone XR / Rakuten Hand 5G）でも計測した（[実機での計測結果](#実機での計測結果)）。
-- **操作**: [agent-device](https://github.com/callstack/agent-device) ですべて自動化する。
-- **時間**: agent-device の操作時間を含めないよう、アプリ内で出力するマーカー（`BENCH|<name>|<epochMs>`）の差で測る。
-- **メモリ**: agent-device の `perf memory sample`（iOS はプロセスの RSS、Android は PSS）。
-- **通信**: GitHub API の代わりに [bench/mock-server](bench/README.md) を使い、通信のばらつきとレート制限を除く。
-
 ## 各実装の埋め込み方
 
 | | iOS に持ち込む形 | Android に持ち込む形 | 画面のランタイム | ホスト ⇄ 画面 |
@@ -55,145 +45,87 @@
 | [flutter](flutter/README.md) | xcframework（dynamic） | AAR | Flutter エンジン（起動時に 1 つ作って使い回す） | MethodChannel |
 | [expo](expo/README.md) | Swift Package（xcframework 群） | AAR | React Native（Hermes、起動時に初期化） | expo-brownfield のメッセージ |
 
-## 計測結果
+## 計測環境
 
-<!-- bench:results:release:start -->
-
-### iOS
-
-端末: iPhone 17（5 回の中央値、ウォームアップ 1 回を除く）
-
-#### 時間
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| コールドスタート（プロセス開始 → ホスト画面） | 920 ms | 924 ms | 1210 ms | 1306 ms |
-| 埋め込み画面の表示（初回） | 145 ms | 181 ms | 160 ms | 433 ms |
-| 埋め込み画面の表示（2 回目） | 44 ms | 82 ms | 58 ms | 48 ms |
-| 検索 → 結果の描画 | 72 ms | 50 ms | 109 ms | 33 ms |
-| 検索 → ホストが結果を受信 | 22 ms | 18 ms | 49 ms | 26 ms |
-| ホスト → 埋め込み画面へのキーワード差し替え | 21 ms | 69 ms | 39 ms | 13 ms |
-
-#### メモリ（RSS）
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| ホスト画面の表示後 | 272.2 MB | 277.3 MB | 440.0 MB | 283.2 MB |
-| 埋め込み画面の表示後 | 314.5 MB | 341.0 MB | 461.9 MB | 337.8 MB |
-| 検索後 | 335.1 MB | 365.9 MB | 480.5 MB | 368.5 MB |
-| ホストに戻った後 | 344.3 MB | 389.2 MB | 494.7 MB | 379.7 MB |
-
-#### アプリサイズ
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| .app（シミュレータ向け） | 1.0 MB | 32.4 MB | 139.8 MB | 52.5 MB |
-
-### Android
-
-端末: bench api36（5 回の中央値、ウォームアップ 1 回を除く）
-
-#### 時間
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| コールドスタート（プロセス開始 → ホスト画面） | 128 ms | 102 ms | 163 ms | 138 ms |
-| 埋め込み画面の表示（初回） | 189 ms | 157 ms | 1974 ms | 171 ms |
-| 埋め込み画面の表示（2 回目） | 201 ms | 194 ms | 225 ms | 77 ms |
-| 検索 → 結果の描画 | 66 ms | 64 ms | 35 ms | 73 ms |
-| 検索 → ホストが結果を受信 | 7 ms | 11 ms | 6 ms | 38 ms |
-| ホスト → 埋め込み画面へのキーワード差し替え | 23 ms | 28 ms | 24 ms | 17 ms |
-
-#### メモリ（PSS）
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| ホスト画面の表示後 | 21.1 MB | 21.5 MB | 55.7 MB | 32.6 MB |
-| 埋め込み画面の表示後 | 25.8 MB | 26.4 MB | 64.7 MB | 52.2 MB |
-| 検索後 | 28.5 MB | 29.4 MB | 69.8 MB | 68.9 MB |
-| ホストに戻った後 | 28.9 MB | 29.7 MB | 69.8 MB | 68.2 MB |
-
-#### アプリサイズ
-
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| APK（R8 有効） | 1.2 MB | 1.5 MB | 44.4 MB | 56.6 MB |
-
-<!-- bench:results:release:end -->
-
-### 計測環境
+すべての結果に共通です。
 
 | | |
 | --- | --- |
 | Mac | MacBook Air（M3, 2024 / Mac15,12）、メモリ 16 GB、macOS 26.6.2 |
-| iOS | Xcode 26.6、iPhone 17 シミュレータ（iOS 26.5） |
-| Android | Android Emulator 37.1.11、AVD Pixel 9（API 36, Google APIs, arm64-v8a） |
+| iOS シミュレータ | Xcode 26.6、iPhone 17 シミュレータ（iOS 26.5） |
+| Android エミュレータ | Android Emulator 37.1.11、AVD Pixel 9（API 36, Google APIs, arm64-v8a） |
+| iOS 実機 | iPhone XR（A12 Bionic、iOS 18.7.10） |
+| Android 実機 | Rakuten Hand 5G（Snapdragon 480 5G、Android 11） |
 | ツール | agent-device 0.21.1、Node.js 24.13.0 |
 | フレームワーク | Flutter 3.47.4、Kotlin 2.4.20 / Compose Multiplatform 1.12.0、Expo SDK 57（React Native 0.86.2） |
 
-### 結果の読み方
+iPhone 17（iOS 27）は実機の計測に使えませんでした。Xcode 26.6 は iOS 27 用の開発用ディスクイメージを持たず、アプリを入れられないためです。
+実機はどちらも数年前の機種で、開発機の上で動くシミュレータ / エミュレータより CPU が遅い点に注意してください。
 
-共通の注意:
+## 計測条件
 
-- シミュレータ / エミュレータ上の数値です。実機の絶対値ではなく、同じ環境でのフレームワーク間の差として読んでください。
-- Flutter と Expo は、埋め込みのランタイム（Flutter エンジン / React Native）をアプリ起動時に初期化します（[AGENTS.md](AGENTS.md)）。
-  そのぶんはコールドスタートとホスト画面のメモリに入り、埋め込み画面を開く時間からは外れます。
-- メモリは iOS がプロセスの RSS、Android が PSS で、指標が違います。プラットフォームをまたいで比べないでください。
-  iOS シミュレータの RSS はシミュレータのシステムフレームワークも含むので、native でも 270 MB ほどになります。
-- Android の APK はどれも 4 ABI（arm64-v8a / armeabi-v7a / x86 / x86_64）を含むユニバーサル APK です。
-  ストアで ABI ごとに配信した場合の大きさではありません。
-- 計測中の検索はモックサーバが返す固定の 20 件です（Android は `adb reverse` 経由）。通信時間はほぼ含みません。
+結果は、ビルドの種類と端末の組み合わせで 3 つあります。
 
-Android:
+| 結果 | ビルド | 端末 | 何のための計測か |
+| --- | --- | --- | --- |
+| [1. デバッグビルド](#1-デバッグビルド) | デバッグ | iOS シミュレータ / Android エミュレータ | 開発中（Xcode / Android Studio から動かすとき）の体感 |
+| [2. リリースビルド](#2-リリースビルド) | リリース | iOS シミュレータ / Android エミュレータ | **フレームワーク間の比較の基準** |
+| [3. 実機](#3-実機) | リリース | iPhone XR / Rakuten Hand 5G | シミュレータ / エミュレータの傾向が実機でも同じか |
 
-- **コールドスタート**は native / KMP / Expo が 100〜140 ms、Flutter が約 160 ms。起動時のエンジン初期化のぶん Flutter が遅くなっています。
-- **Flutter の埋め込み画面の初回表示（約 2 秒）** が突出しています。エンジンは起動時に動かしていますが、
-  初めて `FlutterFragment` を付けるときの描画面の用意はここに入ります。エミュレータの Flutter は Impeller を OpenGLES で動かしており、
-  それがエミュレータでだけ大きく出ています（実機では約 200 ms。[実機での計測結果](#実機での計測結果)）。2 回目は約 220 ms で他と同程度です。
-- どのホストも埋め込み画面を表示ごとに新しい Activity で開きます。その中で Expo の 2 回目の表示（約 80 ms）が最も短く、
-  React Native のランタイムと JS がすでに読み込まれていて、ルートビューを作るだけで済むためと考えられます。
-- **検索 → ホストが結果を受信** は Expo が約 40 ms で、ほかの 3 つ（10 ms 前後）より長くなっています。
-  20 件の結果を JS からネイティブへ渡すメッセージの変換のぶんです。
-- **メモリ**は native と KMP がほぼ同じ（Android の KMP の画面は Jetpack Compose そのもの）です。
-  Flutter は起動直後から約 35 MB、Expo は検索後に約 40 MB、native より多く使います。
+ビルドの種類ごとの中身は次のとおりです。Expo はどちらもローカルでビルドしています（EAS は使わない）。
 
-iOS:
-
-- **Flutter の iOS はデバッグ（JIT）の Flutter で計測しています。** Flutter 3.47 のリリース / プロファイル用の
-  `App.xcframework` はシミュレータ向けに Dart のコードを含まず、シミュレータでは動かせないためです（[flutter/README.md](flutter/README.md)）。
-  ホストアプリはリリース構成ですが、Flutter のコールドスタート・描画・メモリ・アプリサイズはリリースより不利に出ています。
-  特にアプリサイズ（約 140 MB）とメモリ（native より約 170 MB 多い）は、リリースの値の目安になりません。
-  実機（iPhone XR）ではリリース（AOT）で計測でき、アプリサイズは約 14 MB、メモリは native と同程度でした（[実機での計測結果](#実機での計測結果)）。
-- **コールドスタート**は native と KMP が約 920 ms で同じです。Flutter（約 1.2 秒）と Expo（約 1.3 秒）は、
-  起動時にランタイムを初期化するぶん 300〜400 ms ほど長くなっています。
-  iOS の値はプロセスの開始（`p_starttime`）からなので、シミュレータがプロセスを起こす時間も含み、Android より大きく出ます。
-- **Expo の埋め込み画面の初回表示（約 430 ms）** が最も長く、2 回目は約 50 ms です。
-  初回は React Native のルートビューと JS のコンポーネントを初めて描くぶんが入ります。
-- **KMP の 2 回目の表示（約 80 ms）とキーワード差し替え（約 70 ms）** は native の 2〜3 倍です。
-  iOS の Compose Multiplatform は Skia で自前描画し、`ComposeUIViewController` を表示ごとに作ります。
-- Flutter の 2 回目の表示は、ビューコントローラーを 1 つ使い回す構成です（アクセシビリティのための制約。[flutter/README.md](flutter/README.md)）。
-  表示ごとに作り直す他の実装より少し有利です。
-- **メモリ**は native・KMP・Expo がホスト画面で 270〜285 MB と近く、埋め込み画面を開いて検索すると
-  KMP と Expo は native より 30〜35 MB 多くなります。
-
-## デバッグビルドでの計測結果
-
-開発中に Xcode / Android Studio から動かすときの構成（デバッグビルド）で、同じ計測をしたものです。
-リリースビルドとの違いは次のとおりです。
-
-| | iOS | Android |
+| | デバッグビルド | リリースビルド |
 | --- | --- | --- |
-| ホストアプリ | Xcode の Debug 構成（最適化なし） | debug ビルドタイプ（R8 なし、debuggable） |
-| native | 同じ Swift Package を Debug でビルド | 同じライブラリモジュールを debug でビルド |
-| KMP / CMP | Kotlin/Native の debug フレームワーク | リリースと同じ AAR（KMP の Android ライブラリは 1 バリアントのみ） |
-| Flutter | リリースの計測と同じ Debug（JIT）フレームワーク | Debug（JIT）の AAR |
-| Expo | Debug 構成の Swift Package。JS は Metro から読み込む | debug の AAR。JS は Metro から読み込む（`adb reverse tcp:8081`） |
+| iOS のホストアプリ | Xcode の Debug 構成（最適化なし） | Release 構成 |
+| Android のホストアプリ | debug ビルドタイプ（R8 なし、debuggable） | release ビルドタイプ（R8 有効、デバッグ鍵で署名） |
+| native | 同じ Swift Package / ライブラリモジュールを Debug / debug でビルド | 同じものを Release / release でビルド |
+| KMP / CMP | iOS: Kotlin/Native の debug フレームワーク。Android: リリースと同じ AAR（KMP の Android ライブラリは 1 バリアントのみ） | iOS: release フレームワーク。Android: AAR |
+| Flutter | iOS / Android とも Debug（JIT） | Android: Release（AOT）。iOS 実機: Release（AOT）。**iOS シミュレータ: Debug（JIT）**（下記） |
+| Expo | JS は Metro から読み込む（Android は `adb reverse tcp:8081`） | JS は成果物に同梱 |
+
+**iOS シミュレータの Flutter は、リリースビルドでもデバッグ（JIT）の Flutter です。**
+Flutter 3.47 のリリース / プロファイル用の `App.xcframework` はシミュレータ向けに Dart のコードを含まず、シミュレータでは動かせないためです
+（ホストアプリはリリース構成。[flutter/README.md](flutter/README.md)）。iOS の Flutter のリリース（AOT）の値は [3. 実機](#3-実機) にあります。
+
+どの結果も、次の条件は共通です。
+
+- **操作**: [agent-device](https://github.com/callstack/agent-device) ですべて自動化する。1 回の計測は
+  「コールド起動 → 埋め込み画面を開く → 検索 → ホストからキーワードを差し替える → 戻る → もう一度開く → 戻る」。
+- **回数**: 各実装 5 回の中央値。インストール直後の 1 回（ウォームアップ）は除く。
+- **時間**: agent-device の操作時間を含めないよう、アプリ内で出力するマーカー（`BENCH|<name>|<epochMs>`）の差で測る。
+  iOS のコールドスタートはプロセスの開始（`p_starttime`）から数えるので、OS がプロセスを起こす時間も入ります。
+- **メモリ**: agent-device の `perf memory sample`。iOS はプロセスの RSS、Android は PSS で、指標が違います。プラットフォームをまたいで比べないでください。
+- **通信**: GitHub API の代わりに [bench/mock-server](bench/README.md) が固定の 20 件を返す。つなぎ方は、iOS シミュレータは Mac のループバック、
+  Android（エミュレータ / 実機）は USB などの `adb reverse`、iPhone 実機は Mac の LAN のアドレス（Wi‑Fi 経由）です。
+- **ランタイムの初期化**: Flutter と Expo は、埋め込みのランタイム（Flutter エンジン / React Native）をアプリ起動時に初期化します（[AGENTS.md](AGENTS.md)）。
+  そのぶんはコールドスタートとホスト画面のメモリに入り、埋め込み画面を開く時間からは外れます。
+- **アプリサイズ**: Android の APK はどれも 4 ABI（arm64-v8a / armeabi-v7a / x86 / x86_64）を含むユニバーサル APK です。ストアで ABI ごとに配信した場合の大きさではありません。
+
+## 1. デバッグビルド
+
+開発中に Xcode / Android Studio から動かすときの構成で、iOS シミュレータと Android エミュレータで計測したものです。
 
 <!-- bench:results:debug:start -->
 
-### iOS
+### iOS：iPhone 17 シミュレータ（iOS 26.5）
 
-端末: iPhone 17（5 回の中央値、ウォームアップ 1 回を除く）
+デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
+
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 1500
+  bar [962, 975, 1329, 1356]
+```
+
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 1000
+  bar [149, 188, 197, 979]
+```
 
 #### 時間
 
@@ -221,22 +153,25 @@ iOS:
 | --- | ---: | ---: | ---: | ---: |
 | .app（シミュレータ向け） | 1.6 MB | 51.4 MB | 140.1 MB | 171.8 MB |
 
-#### リリースビルドにしたときの変化（デバッグ → リリース）
+### Android：Pixel 9 エミュレータ（API 36）
 
-|  | native | KMP / CMP | Flutter | Expo |
-| --- | ---: | ---: | ---: | ---: |
-| コールドスタート（プロセス開始 → ホスト画面） | 962 ms → 920 ms | 975 ms → 924 ms | 1329 ms → 1210 ms | 1356 ms → 1306 ms |
-| 埋め込み画面の表示（初回） | 149 ms → 145 ms | 188 ms → 181 ms | 197 ms → 160 ms | 979 ms → 433 ms |
-| 埋め込み画面の表示（2 回目） | 42 ms → 44 ms | 86 ms → 82 ms | 76 ms → 58 ms | 65 ms → 48 ms |
-| 検索 → 結果の描画 | 78 ms → 72 ms | 68 ms → 50 ms | 127 ms → 109 ms | 42 ms → 33 ms |
-| 検索 → ホストが結果を受信 | 27 ms → 22 ms | 22 ms → 18 ms | 55 ms → 49 ms | 17 ms → 26 ms |
-| ホスト → 埋め込み画面へのキーワード差し替え | 21 ms → 21 ms | 76 ms → 69 ms | 39 ms → 39 ms | 11 ms → 13 ms |
-| メモリ（RSS、検索後） | 338.5 MB → 335.1 MB | 377.2 MB → 365.9 MB | 450.1 MB → 480.5 MB | 470.4 MB → 368.5 MB |
-| アプリサイズ | 1.6 MB → 1.0 MB | 51.4 MB → 32.4 MB | 140.1 MB → 139.8 MB | 171.8 MB → 52.5 MB |
+デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
-### Android
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 2000
+  bar [788, 819, 1514, 1288]
+```
 
-端末: bench api36（5 回の中央値、ウォームアップ 1 回を除く）
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 2500
+  bar [244, 368, 2002, 1999]
+```
 
 #### 時間
 
@@ -264,7 +199,131 @@ iOS:
 | --- | ---: | ---: | ---: | ---: |
 | APK | 11.4 MB | 13.1 MB | 152.6 MB | 132.5 MB |
 
-#### リリースビルドにしたときの変化（デバッグ → リリース）
+<!-- bench:results:debug:end -->
+
+### デバッグビルドの結果の読み方
+
+- **Android のデバッグビルドは全体に遅く、メモリも多く使います。** debuggable なアプリは ART の事前コンパイル（ベースラインプロファイルなど）を使わず、
+  インタプリタと JIT で動くためです。native でもコールドスタートが約 790 ms、検索 → 描画が約 330 ms かかります。
+- その上に、**Flutter は Dart の JIT とデバッグ用のチェック、Expo は Metro から読む開発用の JS バンドル**が乗ります。
+  Android ではコールドスタートが Flutter 約 1.5 秒・Expo 約 1.3 秒、埋め込み画面の初回表示がどちらも約 2 秒で、メモリは native の 2.5〜3 倍です。
+- **iOS シミュレータのデバッグビルドは、リリースビルドとの差が小さく**なります（[2. リリースビルド](#2-リリースビルド) の「デバッグビルドからの変化」）。
+  例外は Expo の埋め込み画面の初回表示（約 980 ms）で、Metro から読む開発用のバンドルと React Native の開発用の機能（LogBox など）のぶん長くなります。
+- デバッグビルドの差は「開発中の体感」の目安です。フレームワークの性能の比較には [2. リリースビルド](#2-リリースビルド) を使ってください。
+
+## 2. リリースビルド
+
+アプリとして配布するときの構成で、iOS シミュレータと Android エミュレータで計測したものです。**フレームワーク間の比較の基準**にしています。
+各プラットフォームの最後の表は、[1. デバッグビルド](#1-デバッグビルド) からリリースビルドにしたときの変化です。
+
+<!-- bench:results:release:start -->
+
+### iOS：iPhone 17 シミュレータ（iOS 26.5）
+
+リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
+
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 1500
+  bar [920, 924, 1210, 1306]
+```
+
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 500
+  bar [145, 181, 160, 433]
+```
+
+#### 時間
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| コールドスタート（プロセス開始 → ホスト画面） | 920 ms | 924 ms | 1210 ms | 1306 ms |
+| 埋め込み画面の表示（初回） | 145 ms | 181 ms | 160 ms | 433 ms |
+| 埋め込み画面の表示（2 回目） | 44 ms | 82 ms | 58 ms | 48 ms |
+| 検索 → 結果の描画 | 72 ms | 50 ms | 109 ms | 33 ms |
+| 検索 → ホストが結果を受信 | 22 ms | 18 ms | 49 ms | 26 ms |
+| ホスト → 埋め込み画面へのキーワード差し替え | 21 ms | 69 ms | 39 ms | 13 ms |
+
+#### メモリ（RSS）
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| ホスト画面の表示後 | 272.2 MB | 277.3 MB | 440.0 MB | 283.2 MB |
+| 埋め込み画面の表示後 | 314.5 MB | 341.0 MB | 461.9 MB | 337.8 MB |
+| 検索後 | 335.1 MB | 365.9 MB | 480.5 MB | 368.5 MB |
+| ホストに戻った後 | 344.3 MB | 389.2 MB | 494.7 MB | 379.7 MB |
+
+#### アプリサイズ
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| .app（シミュレータ向け） | 1.0 MB | 32.4 MB | 139.8 MB | 52.5 MB |
+
+#### デバッグビルドからの変化（デバッグ → リリース）
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| コールドスタート（プロセス開始 → ホスト画面） | 962 ms → 920 ms | 975 ms → 924 ms | 1329 ms → 1210 ms | 1356 ms → 1306 ms |
+| 埋め込み画面の表示（初回） | 149 ms → 145 ms | 188 ms → 181 ms | 197 ms → 160 ms | 979 ms → 433 ms |
+| 埋め込み画面の表示（2 回目） | 42 ms → 44 ms | 86 ms → 82 ms | 76 ms → 58 ms | 65 ms → 48 ms |
+| 検索 → 結果の描画 | 78 ms → 72 ms | 68 ms → 50 ms | 127 ms → 109 ms | 42 ms → 33 ms |
+| 検索 → ホストが結果を受信 | 27 ms → 22 ms | 22 ms → 18 ms | 55 ms → 49 ms | 17 ms → 26 ms |
+| ホスト → 埋め込み画面へのキーワード差し替え | 21 ms → 21 ms | 76 ms → 69 ms | 39 ms → 39 ms | 11 ms → 13 ms |
+| メモリ（RSS、検索後） | 338.5 MB → 335.1 MB | 377.2 MB → 365.9 MB | 450.1 MB → 480.5 MB | 470.4 MB → 368.5 MB |
+| アプリサイズ | 1.6 MB → 1.0 MB | 51.4 MB → 32.4 MB | 140.1 MB → 139.8 MB | 171.8 MB → 52.5 MB |
+
+### Android：Pixel 9 エミュレータ（API 36）
+
+リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
+
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 200
+  bar [128, 102, 163, 138]
+```
+
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 2000
+  bar [189, 157, 1974, 171]
+```
+
+#### 時間
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| コールドスタート（プロセス開始 → ホスト画面） | 128 ms | 102 ms | 163 ms | 138 ms |
+| 埋め込み画面の表示（初回） | 189 ms | 157 ms | 1974 ms | 171 ms |
+| 埋め込み画面の表示（2 回目） | 201 ms | 194 ms | 225 ms | 77 ms |
+| 検索 → 結果の描画 | 66 ms | 64 ms | 35 ms | 73 ms |
+| 検索 → ホストが結果を受信 | 7 ms | 11 ms | 6 ms | 38 ms |
+| ホスト → 埋め込み画面へのキーワード差し替え | 23 ms | 28 ms | 24 ms | 17 ms |
+
+#### メモリ（PSS）
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| ホスト画面の表示後 | 21.1 MB | 21.5 MB | 55.7 MB | 32.6 MB |
+| 埋め込み画面の表示後 | 25.8 MB | 26.4 MB | 64.7 MB | 52.2 MB |
+| 検索後 | 28.5 MB | 29.4 MB | 69.8 MB | 68.9 MB |
+| ホストに戻った後 | 28.9 MB | 29.7 MB | 69.8 MB | 68.2 MB |
+
+#### アプリサイズ
+
+|  | native | KMP / CMP | Flutter | Expo |
+| --- | ---: | ---: | ---: | ---: |
+| APK（R8 有効） | 1.2 MB | 1.5 MB | 44.4 MB | 56.6 MB |
+
+#### デバッグビルドからの変化（デバッグ → リリース）
 
 |  | native | KMP / CMP | Flutter | Expo |
 | --- | ---: | ---: | ---: | ---: |
@@ -277,42 +336,74 @@ iOS:
 | メモリ（PSS、検索後） | 87.0 MB → 28.5 MB | 84.4 MB → 29.4 MB | 258.6 MB → 69.8 MB | 218.5 MB → 68.9 MB |
 | アプリサイズ | 11.4 MB → 1.2 MB | 13.1 MB → 1.5 MB | 152.6 MB → 44.4 MB | 132.5 MB → 56.6 MB |
 
-<!-- bench:results:debug:end -->
+<!-- bench:results:release:end -->
 
-### デバッグビルドの結果の読み方
+### リリースビルドの結果の読み方
 
-- **Android はデバッグビルドで大きく遅くなります。** debuggable なアプリは ART の事前コンパイル（ベースラインプロファイルなど）を使わず、
-  インタプリタと JIT で動くためです。native でもコールドスタートはデバッグで約 790 ms（リリースで約 130 ms）、
-  検索結果の描画はデバッグで約 330 ms（リリースで約 70 ms）で、メモリ（PSS）はデバッグがリリースの約 3 倍です。
-- その上に、**Flutter は Dart の JIT とデバッグ用のチェック、Expo は Metro から読む開発用の JS バンドル**が乗ります。
-  Android のコールドスタートは Flutter が約 1.5 秒、Expo が約 1.3 秒、埋め込み画面の初回表示はどちらも約 2 秒で、
-  メモリは native の 2.5〜3 倍になります。
-- **iOS シミュレータでは差が小さく**、native はどの指標もデバッグとリリースの差が 1 割前後、KMP も検索結果の描画
-  （デバッグで約 70 ms、リリースで約 50 ms）を除けば 1 割前後に収まります（Mac の CPU で動くシミュレータでは、Swift の最適化の有無がこの程度の画面ではほとんど効きません）。
-  iOS の Flutter はもともとリリースの計測でもデバッグ（JIT）の Flutter なので、違いはホストアプリの構成だけです。
-- **iOS の Expo は埋め込み画面の初回表示がデバッグで約 980 ms**、リリースで約 430 ms と半分以下になり、メモリもリリースで約 100 MB 減ります。
-  JS を Metro から読む開発用のバンドルと、React Native の開発用の機能（LogBox など）のぶんです。2 回目以降の表示や検索はリリースと大差ありません。
-- デバッグビルドの差は「開発中の体感」の目安にはなりますが、フレームワークの性能の比較には
-  [リリースビルドの結果](#計測結果) を使ってください。特に Android では、デバッグビルドの差がリリースの差とは大きく異なります。
+- シミュレータ / エミュレータ上の数値です。実機の絶対値ではなく、同じ環境でのフレームワーク間の差として読んでください。
 
-## 実機での計測結果
+Android:
 
-シミュレータ / エミュレータの結果が実機でも同じ傾向になるかを、リリースビルドで確かめたものです。
+- **コールドスタート**は native / KMP / Expo が 100〜140 ms、Flutter が約 160 ms。起動時のエンジン初期化のぶん Flutter が遅くなっています。
+- **Flutter の埋め込み画面の初回表示（約 2 秒）** が突出しています。エンジンは起動時に動かしていますが、
+  初めて `FlutterFragment` を付けるときの描画面の用意はここに入ります。エミュレータの Flutter は Impeller を OpenGLES で動かしており、
+  それがエミュレータでだけ大きく出ています（実機では約 200 ms。[3. 実機](#3-実機)）。2 回目は約 220 ms で他と同程度です。
+- どのホストも埋め込み画面を表示ごとに新しい Activity で開きます。その中で Expo の 2 回目の表示（約 80 ms）が最も短く、
+  React Native のランタイムと JS がすでに読み込まれていて、ルートビューを作るだけで済むためと考えられます。
+- **検索 → ホストが結果を受信** は Expo が約 40 ms で、ほかの 3 つ（10 ms 前後）より長くなっています。
+  20 件の結果を JS からネイティブへ渡すメッセージの変換のぶんです。
+- **メモリ**は native と KMP がほぼ同じ（Android の KMP の画面は Jetpack Compose そのもの）です。
+  Flutter は起動直後から約 35 MB、Expo は検索後に約 40 MB、native より多く使います。
+- **デバッグビルドからの変化が大きい**のが Android です。コールドスタートは native で約 790 ms → 約 130 ms、
+  検索 → 描画は約 330 ms → 約 70 ms、メモリ（PSS）は約 3 分の 1 になります。デバッグビルドの差はリリースの差とは大きく異なります。
 
-| | iOS | Android |
-| --- | --- | --- |
-| 端末 | iPhone XR（A12 Bionic、iOS 18.7.10） | Rakuten Hand 5G（Snapdragon 480 5G、Android 11） |
-| ビルド | 実機向けのリリースビルド（開発用の証明書で署名）。**Flutter もリリース（AOT）** | エミュレータと同じ APK（R8 有効） |
-| モックサーバ | Mac の LAN のアドレス（Wi‑Fi 経由） | USB 経由の `adb reverse` |
+iOS:
 
-iPhone は iOS 27 の iPhone 17 では計測できませんでした。Xcode 26.6 は iOS 27 用の開発用ディスクイメージを持たず、アプリを入れられないためです。
-どちらの端末も数年前の機種で、開発機の上で動くシミュレータ / エミュレータより CPU が遅い点に注意してください。
+- **Flutter はデバッグ（JIT）の Flutter での値です**（[計測条件](#計測条件)）。コールドスタート・描画・メモリ・アプリサイズはリリースより不利に出ており、
+  特にアプリサイズ（約 140 MB）とメモリ（native より約 170 MB 多い）はリリースの目安になりません。
+  実機（iPhone XR）のリリース（AOT）では、アプリサイズは約 14 MB、メモリは native と同程度でした（[3. 実機](#3-実機)）。
+- **コールドスタート**は native と KMP が約 920 ms で同じです。Flutter（約 1.2 秒）と Expo（約 1.3 秒）は、
+  起動時にランタイムを初期化するぶん 300〜400 ms ほど長くなっています。
+  シミュレータがプロセスを起こす時間も入るので、Android より大きく出ます。
+- **Expo の埋め込み画面の初回表示（約 430 ms）** が最も長く、2 回目は約 50 ms です。
+  初回は React Native のルートビューと JS のコンポーネントを初めて描くぶんが入ります。
+- **KMP の 2 回目の表示（約 80 ms）とキーワード差し替え（約 70 ms）** は native の 2〜3 倍です。
+  iOS の Compose Multiplatform は Skia で自前描画し、`ComposeUIViewController` を表示ごとに作ります。
+- Flutter の 2 回目の表示は、ビューコントローラーを 1 つ使い回す構成です（アクセシビリティのための制約。[flutter/README.md](flutter/README.md)）。
+  表示ごとに作り直す他の実装より少し有利です。
+- **メモリ**は native・KMP・Expo がホスト画面で 270〜285 MB と近く、埋め込み画面を開いて検索すると
+  KMP と Expo は native より 30〜35 MB 多くなります。iOS シミュレータの RSS はシミュレータのシステムフレームワークも含むので、native でも 270 MB ほどになります。
+- **デバッグビルドからの変化は小さく**、native はどの指標も 1 割前後、KMP も検索 → 描画（約 70 ms → 約 50 ms）を除けば 1 割前後です
+  （Mac の CPU で動くシミュレータでは、Swift の最適化の有無がこの程度の画面ではほとんど効きません）。
+  大きく変わるのは Expo で、埋め込み画面の初回表示が約 980 ms → 約 430 ms、メモリ（検索後）が約 100 MB 減ります。
+
+## 3. 実機
+
+[2. リリースビルド](#2-リリースビルド) の傾向が実機でも同じかを、リリースビルドで確かめたものです。
+端末は [計測環境](#計測環境) のとおり iPhone XR と Rakuten Hand 5G で、iPhone は実機向けに開発用の証明書で署名したビルド（**Flutter もリリース（AOT）**）、
+Android はエミュレータと同じ APK です。各プラットフォームの最後の表は、シミュレータ / エミュレータから実機にしたときの変化です。
 
 <!-- bench:results:release-device:start -->
 
-### iOS
+### iOS：iPhone XR 実機（iOS 18.7）
 
-端末: mitsuharu-iPhoneXR（5 回の中央値、ウォームアップ 1 回を除く）
+リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
+
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 1000
+  bar [289, 299, 806, 440]
+```
+
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 250
+  bar [83, 134, 109, 224]
+```
 
 #### 時間
 
@@ -340,7 +431,7 @@ iPhone は iOS 27 の iPhone 17 では計測できませんでした。Xcode 26.
 | --- | ---: | ---: | ---: | ---: |
 | .app（実機向け） | 0.6 MB | 32.4 MB | 14.1 MB | 27.1 MB |
 
-#### シミュレータ / エミュレータとの比較（シミュレータ・エミュレータ → 実機）
+#### シミュレータ / エミュレータからの変化（シミュレータ・エミュレータ → 実機）
 
 |  | native | KMP / CMP | Flutter | Expo |
 | --- | ---: | ---: | ---: | ---: |
@@ -353,9 +444,25 @@ iPhone は iOS 27 の iPhone 17 では計測できませんでした。Xcode 26.
 | メモリ（RSS、検索後） | 335.1 MB → 130.7 MB | 365.9 MB → 150.7 MB | 480.5 MB → 119.6 MB | 368.5 MB → 122.2 MB |
 | アプリサイズ | 1.0 MB → 0.6 MB | 32.4 MB → 32.4 MB | 139.8 MB → 14.1 MB | 52.5 MB → 27.1 MB |
 
-### Android
+### Android：Rakuten Hand 5G 実機（Android 11）
 
-端末: P780（5 回の中央値、ウォームアップ 1 回を除く）
+リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
+
+```mermaid
+xychart-beta horizontal
+  title "コールドスタート（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 250
+  bar [161, 169, 212, 198]
+```
+
+```mermaid
+xychart-beta horizontal
+  title "埋め込み画面の表示・初回（ms）"
+  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
+  y-axis "ms" 0 --> 300
+  bar [104, 117, 201, 273]
+```
 
 #### 時間
 
@@ -383,7 +490,7 @@ iPhone は iOS 27 の iPhone 17 では計測できませんでした。Xcode 26.
 | --- | ---: | ---: | ---: | ---: |
 | APK（R8 有効） | 1.2 MB | 1.5 MB | 44.4 MB | 56.6 MB |
 
-#### シミュレータ / エミュレータとの比較（シミュレータ・エミュレータ → 実機）
+#### シミュレータ / エミュレータからの変化（シミュレータ・エミュレータ → 実機）
 
 |  | native | KMP / CMP | Flutter | Expo |
 | --- | ---: | ---: | ---: | ---: |
@@ -441,4 +548,5 @@ node report.mjs --write
 ```
 
 デバッグビルドは `./scripts/build.sh <framework> <platform> debug` で作り、Expo 用に Metro を起動してから
-`node run.mjs --platform <ios|android> --framework all --build debug` で計測します（[bench/README.md](bench/README.md)）。
+`node run.mjs --platform <ios|android> --framework all --build debug` で計測します。
+実機は `--physical` を付けて計測します。端末の表示名は `--device-label` で渡せます（[bench/README.md](bench/README.md)）。

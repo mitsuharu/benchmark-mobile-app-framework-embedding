@@ -131,8 +131,12 @@ async function measure(framework) {
     await device.call(['logs', 'stop']).catch(() => {})
   }
 
+  // agent-device rotates app.log to app.log.1 past 5 MB and keeps one
+  // generation, so a long run's first iterations can sit in the older file.
   const { path: logPath } = await device.call(['logs', 'path'])
-  const segments = splitByIteration(await readFile(logPath, 'utf8'), total)
+  const readIfPresent = (file) => readFile(file, 'utf8').catch(() => '')
+  const sessionLog = `${await readIfPresent(`${logPath}.1`)}\n${await readFile(logPath, 'utf8')}`
+  const segments = splitByIteration(sessionLog, total)
   await device.call(['close']).catch(() => {})
 
   const all = runs.map((run, index) => ({

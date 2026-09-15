@@ -85,8 +85,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # The action's default package list still names `tools`, which the SDK
+      # no longer has. AGP fetches the platform it compiles against itself.
       - name: Set up the Android SDK
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+        with:
+          packages: platform-tools
 
       # The project commits a gradle-wrapper.jar. This checks it against the
       # checksums Gradle publishes, so a tampered wrapper cannot run here.

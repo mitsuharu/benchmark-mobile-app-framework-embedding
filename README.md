@@ -300,7 +300,7 @@ iOS:
 
 | | iOS | Android |
 | --- | --- | --- |
-| 端末 | iPhone 17（iOS 27.0） | Redmi 12 5G（Snapdragon 4 Gen 2、Android 15 / HyperOS 2.0） |
+| 端末 | iPhone 17（iOS 27.0） | Rakuten Hand 5G（Snapdragon 480 5G、Android 11） |
 | ビルド | 実機向けのリリースビルド（開発用の証明書で署名）。**Flutter もリリース（AOT）** | エミュレータと同じ APK（R8 有効） |
 | モックサーバ | Mac の LAN のアドレス（Wi‑Fi 経由） | USB 経由の `adb reverse` |
 

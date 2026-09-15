@@ -53,7 +53,9 @@ node run.mjs --platform ios --framework all --iterations 5
 node run.mjs --platform android --framework all --iterations 5
 ```
 
-- 結果は `bench/results/<platform>-<framework>.json` に書き出される。
+- 結果は `bench/results/<build>/<platform>-<framework>.json` に書き出される（`<build>` は `release` / `debug`）。
+- デバッグビルドも計測するときは、`./scripts/build.sh <framework> <platform> debug` で作り、
+  Expo 用に Metro を起動してから（`cd expo/expo-app && npx expo start`）`--build debug` を付けて実行する。
 - 端末が複数あるときは `--udid <UDID>`（iOS）/ `--serial emulator-5554`（Android）で指定する。
 - 1 回の計測は「コールド起動 → 埋め込み画面を開く → 検索 → キーワード差し替え → 戻る → もう一度開く → 戻る」。
   最初の 1 回（`--warmup`）はインストール直後の影響があるので集計から外す。

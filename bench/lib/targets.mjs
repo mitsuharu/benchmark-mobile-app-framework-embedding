@@ -31,8 +31,11 @@ export function appId(framework, platform) {
   return typeof id === 'string' ? id : id[platform]
 }
 
+/** How the apps are built; see scripts/build.sh. */
+export const BUILDS = ['release', 'debug']
+
 /** The installable build that scripts/build.sh produces. */
-export function artifactPath(framework, platform) {
-  const file = platform === 'ios' ? 'HostApp.app' : 'app-release.apk'
-  return path.join(BENCH_ROOT, 'artifacts', framework, platform, file)
+export function artifactPath(framework, platform, build = 'release') {
+  const file = platform === 'ios' ? 'HostApp.app' : `app-${build}.apk`
+  return path.join(BENCH_ROOT, 'artifacts', build, framework, platform, file)
 }

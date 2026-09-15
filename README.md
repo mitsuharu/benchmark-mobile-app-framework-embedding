@@ -57,7 +57,7 @@
 
 ## 計測結果
 
-<!-- bench:results:start -->
+<!-- bench:results:release:start -->
 
 ### iOS
 
@@ -119,7 +119,7 @@
 | --- | ---: | ---: | ---: | ---: |
 | APK（R8 有効） | 1.2 MB | 1.5 MB | 44.4 MB | 56.6 MB |
 
-<!-- bench:results:end -->
+<!-- bench:results:release:end -->
 
 ### 計測環境
 
@@ -175,6 +175,25 @@ iOS:
 - **メモリ**は native・KMP・Expo がホスト画面で 270〜285 MB と近く、埋め込み画面を開いて検索すると
   KMP と Expo は native より 30〜35 MB 多くなります。
 
+## デバッグビルドでの計測結果
+
+開発中に Xcode / Android Studio から動かすときの構成（デバッグビルド）で、同じ計測をしたものです。
+リリースビルドとの違いは次のとおりです。
+
+| | iOS | Android |
+| --- | --- | --- |
+| ホストアプリ | Xcode の Debug 構成（最適化なし） | debug ビルドタイプ（R8 なし、debuggable） |
+| native | 同じ Swift Package を Debug でビルド | 同じライブラリモジュールを debug でビルド |
+| KMP / CMP | Kotlin/Native の debug フレームワーク | リリースと同じ AAR（KMP の Android ライブラリは 1 バリアントのみ） |
+| Flutter | リリースの計測と同じ Debug（JIT）フレームワーク | Debug（JIT）の AAR |
+| Expo | Debug 構成の Swift Package。JS は Metro から読み込む | debug の AAR。JS は Metro から読み込む（`adb reverse tcp:8081`） |
+
+<!-- bench:results:debug:start -->
+
+（計測後に `node bench/report.mjs --write` で差し替えます）
+
+<!-- bench:results:debug:end -->
+
 ## 計測をやり直す
 
 手順は [run-benchmark スキル](.claude/skills/run-benchmark/SKILL.md) にまとめています。概略は次のとおりです。
@@ -188,3 +207,6 @@ node run.mjs --platform ios --framework all --iterations 5
 node run.mjs --platform android --framework all --iterations 5
 node report.mjs --write
 ```
+
+デバッグビルドは `./scripts/build.sh <framework> <platform> debug` で作り、Expo 用に Metro を起動してから
+`node run.mjs --platform <ios|android> --framework all --build debug` で計測します（[bench/README.md](bench/README.md)）。

@@ -43,10 +43,25 @@ Android でエミュレータからホストへの固定アドレス `10.0.2.2` 
 ```bash
 npm ci
 npm run mock-server -- --quiet &                # 計測中は常に起動しておく
-./scripts/build.sh native ios                   # 計測用ビルド → artifacts/<framework>/<platform>/
-node run.mjs --platform ios --framework native  # → results/ios-native.json
+./scripts/build.sh native ios                   # 計測用ビルド → artifacts/release/<framework>/<platform>/
+node run.mjs --platform ios --framework native  # → results/release/ios-native.json
 node report.mjs                                 # Markdown の表にする（--write でルート README を更新）
 ```
+
+### デバッグビルド
+
+`build.sh` の 3 つ目の引数と `run.mjs --build` で、デバッグビルドを同じ手順で計測できます。
+成果物は `artifacts/debug/`、結果は `results/debug/` に分かれ、`report.mjs --write` は
+ルート README のデバッグビルドの節に、リリースビルドとの比較つきで書き出します。
+
+```bash
+./scripts/build.sh expo ios debug                          # → artifacts/debug/expo/ios/
+(cd ../expo/expo-app && npx expo start) &                  # Expo のデバッグビルドは JS を Metro から読む
+node run.mjs --platform ios --framework all --build debug  # → results/debug/
+```
+
+Expo のデバッグビルドを計測するときは Metro（8081）が必要です。`run.mjs` は Metro が動いていなければ止まり、
+Android では `adb reverse tcp:8081 tcp:8081` も設定します。
 
 ### 1 回分のシナリオ
 

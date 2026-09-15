@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
  * Runs the benchmark scenario against the benchmark builds in artifacts/ and
- * writes the raw numbers to results/<platform>-<framework>.json.
+ * writes the raw numbers to results/<build>/<platform>-<framework>.json.
  *
  *   node run.mjs --platform ios --framework native
  *   node run.mjs --platform android --framework all --iterations 10
+ *   node run.mjs --platform ios --framework all --build debug
  *
  * Build the apps first with scripts/build.sh, and keep mock-server running.
+ * The Expo debug build also needs Metro (`npx expo start` in expo/expo-app).
  */
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -19,7 +21,13 @@ import { iterationLabel, splitByIteration } from './lib/log-segments.mjs'
 import { computeTimings, parseMarkers } from './lib/markers.mjs'
 import { runScenario } from './lib/scenario.mjs'
 import { summarize } from './lib/stats.mjs'
-import { appId, artifactPath, FRAMEWORKS, PLATFORMS } from './lib/targets.mjs'
+import {
+  appId,
+  artifactPath,
+  BUILDS,
+  FRAMEWORKS,
+  PLATFORMS,
+} from './lib/targets.mjs'
 
 const { values: options } = parseArgs({
   options: {
@@ -32,6 +40,7 @@ const { values: options } = parseArgs({
     device: { type: 'string' },
     udid: { type: 'string' },
     serial: { type: 'string' },
+    build: { type: 'string', default: 'release' },
     out: { type: 'string', default: 'results' },
     'skip-install': { type: 'boolean', default: false },
     verbose: { type: 'boolean', default: false },
@@ -49,6 +58,11 @@ const iterations = Number(options.iterations)
 const warmup = Number(options.warmup)
 const retries = Number(options.retries)
 const settleMs = Number(options['settle-ms'])
+const build = options.build
+if (!BUILDS.includes(build)) {
+  console.error(`--build must be one of: ${BUILDS.join(', ')}`)
+  process.exit(1)
+}
 
 /** Selects the device on the first command; the session remembers it. */
 const target = [
@@ -85,7 +99,7 @@ function summarizeRuns(runs, pick) {
 
 async function measure(framework) {
   const id = appId(framework, platform)
-  const artifact = artifactPath(framework, platform)
+  const artifact = artifactPath(framework, platform, build)
   const device = new AgentDevice({
     session: `bench-${platform}`,
     log: options.verbose ? log : () => {},
@@ -164,6 +178,7 @@ async function measure(framework) {
   return {
     framework,
     platform,
+    build,
     appId: id,
     device: { name: opened.device, id: opened.id },
     measuredAt: new Date().toISOString(),
@@ -185,11 +200,31 @@ async function measure(framework) {
 const outDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   options.out,
+  build,
 )
 await mkdir(outDir, { recursive: true })
 
+/** React Native's debug build loads its JavaScript from Metro. */
+const METRO_PORT = 8081
+const needsMetro = build === 'debug' && frameworks.includes('expo')
+if (needsMetro) {
+  const status = await fetch(`http://127.0.0.1:${METRO_PORT}/status`)
+    .then((response) => response.text())
+    .catch(() => '')
+  if (!status.includes('packager-status:running')) {
+    console.error(
+      'The Expo debug build loads its JavaScript from Metro. Start it first:\n' +
+        '  cd ../expo/expo-app && npx expo start',
+    )
+    process.exit(1)
+  }
+}
+
 if (platform === 'android') {
   await reversePort(MOCK_SERVER_PORT, { serial: options.serial })
+  if (needsMetro) {
+    await reversePort(METRO_PORT, { serial: options.serial })
+  }
 }
 
 for (const framework of frameworks) {

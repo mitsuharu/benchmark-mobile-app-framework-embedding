@@ -133,6 +133,29 @@ final class FlutterRepoSearch {
   private var channel: FlutterMethodChannel?
   private var eventListeners: [UUID: (RepoSearchEvent) -> Void] = [:]
 
+  /// The view controller every visit shows, created on the first visit.
+  ///
+  /// Attaching a new view controller to the engine drops the engine's
+  /// accessibility bridge, and Flutter builds a new one only when semantics
+  /// switch from off to on. On the simulator they never switch off, so a
+  /// second view controller showed an empty view to UI automation for good.
+  /// Keeping one view controller keeps its bridge.
+  private(set) lazy var viewController: FlutterViewController = SemanticsViewController(
+    engine: engine,
+    nibName: nil,
+    bundle: nil
+  )
+
+  /// Keeps semantics on while the screen is shown. On a device, every
+  /// `viewDidAppear` sets them from the assistive technologies that are
+  /// running, which turns them off again when none is.
+  private final class SemanticsViewController: FlutterViewController {
+    override func viewDidAppear(_ animated: Bool) {
+      super.viewDidAppear(animated)
+      engine.ensureSemanticsEnabled()
+    }
+  }
+
   func start() {
     guard channel == nil else { return }
     // The module uses no plugins, so there is nothing to register.
@@ -140,8 +163,7 @@ final class FlutterRepoSearch {
     // On iOS, Flutter builds its accessibility tree only once an assistive
     // technology asks for it, so UI automation (XCTest, agent-device) sees an
     // empty view. React Native and Compose always expose theirs; turning it on
-    // here keeps the screen operable and the work comparable. Every later
-    // visit turns it on again (see `SemanticsFlutterViewController`).
+    // here keeps the screen operable and the work comparable.
     engine.ensureSemanticsEnabled()
 
     let channel = FlutterMethodChannel(

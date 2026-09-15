@@ -90,8 +90,26 @@ node run.mjs --platform ios --framework all --physical --udid <UDID>
 
 - Android の実機は開発者オプションの USB デバッグが必要です。Xiaomi（HyperOS / MIUI）は
   「USB 経由でインストール」と「USB デバッグ（セキュリティ設定）」も有効にしないと、インストールやタップができません。
-- iPhone はデベロッパモードを有効にし、計測中はロックを解除しておきます。初回はローカルネットワークへの接続許可を求められます。
+- iPhone はデベロッパモードを有効にし、計測中はロックを解除しておきます。
 - iPhone のビルドは Mac の LAN のアドレス（`ipconfig getifaddr en0`）を向きます。変えるときは `BENCH_IOS_DEVICE_API_BASE_URL` を指定します。
+
+iPhone の実機でつまずいた点:
+
+- **Xcode が端末の iOS に対応していること。** Xcode 26.6 は iOS 27 の端末にアプリを入れられません
+  （`The developer disk image could not be mounted`）。
+- **Mac の開発ツールの許可。** `DevToolsSecurity -status` が無効だと、agent-device のランナーが
+  `Developer mode is disabled for Apple development tools` で動きません。`sudo DevToolsSecurity -enable` で有効にします。
+- **`--udid` はハードウェアの UDID。** `xcrun devicectl list devices` の Identifier（CoreDevice の ID）ではなく、
+  `npx agent-device devices --platform ios --json` の `id`（`00008150-…` の形）を渡します。
+- **Build Location が Custom の Mac。** ランナーの `.xctestrun` を見つけられないので、
+  `AGENT_DEVICE_IOS_XCTESTRUN_FILE` に `<Products>/AgentDeviceRunner_*iphoneos*.xctestrun` を指定します。
+- **マーカーは stderr にも書く。** 実機では agent-device のアプリログが「agent-device が起動したプロセスの出力」だけで、
+  統合ログ（`Logger` / `NSLog`）は入りません。そのため iOS の実装はマーカーを stderr にも書いています
+  （シミュレータでは同じマーカーが 2 回出るので、`parseMarkers` が 1 つにまとめます）。
+- **ログのための再起動をそのまま使う。** 実機では `logs clear --restart` が出力を取るためにアプリを起動し直すので、
+  `run.mjs --physical` はその後に `--relaunch` しません（すると出力の取れないプロセスに入れ替わる）。
+- **ローカルネットワークの許可。** 各アプリの最初の検索で許可を求められます。計測の前に一度ずつ検索して「許可」を押しておきます
+  （許可のダイアログが出ている間はランナーの操作がタイムアウトします）。
 
 ### 1 回分のシナリオ
 

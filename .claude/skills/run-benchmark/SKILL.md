@@ -68,6 +68,20 @@ Xcode の Settings → Locations → Advanced が `Custom` だと、agent-device
 export AGENT_DEVICE_IOS_XCTESTRUN_FILE="$(ls <Custom の Products のパス>/AgentDeviceRunner_*iphonesimulator*.xctestrun | head -1)"
 ```
 
+Expo の xcframework のビルド（`npm run brownfield:ios`）も同じ理由で
+`Could not find the compiled brownfield framework` になります（[expo/README.md](../../../expo/README.md) の既知の問題 2）。
+`./scripts/build.sh expo ios` の前に、prebuild と成果物のビルドを手で行ってください。
+
+```bash
+cd expo/expo-app
+npm ci
+npm run prebuild:ios
+mkdir -p ios/build/Build && ln -sfn <Custom の Products のパス> ios/build/Build/Products
+npm run brownfield:ios
+```
+
+ホストアプリ自体は `build.sh` が `SYMROOT` / `OBJROOT` を明示するので、この影響を受けません。
+
 ## 5. README を更新する
 
 ```bash

@@ -32,6 +32,10 @@ targets:
           NSAllowsArbitraryLoads: false
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Allows the React Native screen to connect to the Metro bundler during development.
+        # React Native's StatusBar module (used by expo-status-bar) sets the
+        # status bar app-wide; in a debug build it shows a red error screen
+        # over the React Native view unless this is NO.
+        UIViewControllerBasedStatusBarAppearance: false
         # Handed to the React Native screen as `apiBaseUrl`. Empty means the
         # real GitHub API; see AppConfig.swift.
         BenchAPIBaseURL: $(BENCH_API_BASE_URL)

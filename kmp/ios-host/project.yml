@@ -1,0 +1,66 @@
+name: HostApp
+options:
+  bundleIdPrefix: com.example.benchmark.kmp
+  createIntermediateGroups: true
+  deploymentTarget:
+    iOS: "16.4"
+
+targets:
+  HostApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: HostApp
+    info:
+      path: HostApp/Info.plist
+      properties:
+        CFBundleDisplayName: KMP Host
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        # Compose Multiplatform refuses to start without it: it lets the
+        # screen render at the display's full refresh rate on ProMotion devices.
+        CADisableMinimumFrameDurationOnPhone: true
+        # Lets the benchmark build reach bench/mock-server over plain http on
+        # the loopback address. Remote hosts still require https.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: false
+          NSAllowsLocalNetworking: true
+        # Empty means the real GitHub API; see AppConfig.swift.
+        BenchAPIBaseURL: $(BENCH_API_BASE_URL)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.kmp.host
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        # The XCFramework only carries the Apple silicon simulator slice
+        # (iosSimulatorArm64), so a Release build for the simulator must not
+        # ask for x86_64 as well.
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
+        # Overridden on the xcodebuild command line by the benchmark build,
+        # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787
+        BENCH_API_BASE_URL: ""
+    dependencies:
+      # Produced by `./gradlew assembleRepoSearchKitReleaseXCFramework` in
+      # ../shared. The framework is static, so it is linked, not embedded.
+      - framework: ../shared/build/XCFrameworks/release/RepoSearchKit.xcframework
+        embed: false
+    scheme:
+      testTargets:
+        - HostAppTests
+
+  HostAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: HostAppTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.benchmark.kmp.host.tests
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: HostApp

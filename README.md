@@ -111,34 +111,6 @@ Flutter 3.47 のリリース / プロファイル用の `App.xcframework` はシ
 
 デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 1500
-  bar [962, 975, 1329, 1356]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 1000
-  bar [149, 188, 197, 979]
-```
-
 #### 時間
 
 |  | native | KMP / CMP | Flutter | Expo |
@@ -168,34 +140,6 @@ xychart-beta
 ### Android：Pixel 9 エミュレータ（API 36）
 
 デバッグビルド。5 回の中央値（ウォームアップ 1 回を除く）。
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 2000
-  bar [788, 819, 1514, 1288]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 2500
-  bar [244, 368, 2002, 1999]
-```
 
 #### 時間
 
@@ -246,34 +190,6 @@ xychart-beta
 
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 1500
-  bar [920, 924, 1210, 1306]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 500
-  bar [145, 181, 160, 433]
-```
-
 #### 時間
 
 |  | native | KMP / CMP | Flutter | Expo |
@@ -316,34 +232,6 @@ xychart-beta
 ### Android：Pixel 9 エミュレータ（API 36）
 
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 200
-  bar [128, 102, 163, 138]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 2000
-  bar [189, 157, 1974, 171]
-```
 
 #### 時間
 
@@ -437,34 +325,6 @@ Android はエミュレータと同じ APK です。各プラットフォーム�
 
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
 
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 1000
-  bar [289, 299, 806, 440]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 250
-  bar [83, 134, 109, 224]
-```
-
 #### 時間
 
 |  | native | KMP / CMP | Flutter | Expo |
@@ -507,34 +367,6 @@ xychart-beta
 ### Android：Rakuten Hand 5G 実機（Android 11）
 
 リリースビルド。5 回の中央値（ウォームアップ 1 回を除く）。
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "コールドスタート（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 250
-  bar [161, 169, 212, 198]
-```
-
-```mermaid
----
-config:
-  xyChart:
-    width: 600
-    height: 300
----
-xychart-beta
-  title "埋め込み画面の表示・初回（ms）"
-  x-axis ["native", "KMP / CMP", "Flutter", "Expo"]
-  y-axis "ms" 0 --> 300
-  bar [104, 117, 201, 273]
-```
 
 #### 時間
 

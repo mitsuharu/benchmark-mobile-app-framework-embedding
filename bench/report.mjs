@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Turns results/<section>/*.json into the tables and charts of the root
- * README.
+ * Turns results/<section>/*.json into the tables of the root README.
  *
  *   node report.mjs            # print the sections
  *   node report.mjs --write    # replace each section in ../README.md
@@ -72,12 +71,6 @@ const TIMINGS = [
   ['commandMs', 'ホスト → 埋め込み画面へのキーワード差し替え'],
 ]
 
-/** The timings charted above each platform's tables. */
-const CHARTS = [
-  ['coldStartMs', 'コールドスタート（ms）'],
-  ['embedOpenColdMs', '埋め込み画面の表示・初回（ms）'],
-]
-
 const MEMORY = [
   ['hostIdle', 'ホスト画面の表示後'],
   ['embedOpened', '埋め込み画面の表示後'],
@@ -96,47 +89,6 @@ function table(header, rows) {
     line(header),
     line(header.map((_, index) => (index === 0 ? '---' : '---:'))),
     ...rows.map(line),
-  ].join('\n')
-}
-
-/**
- * Rounds up to a tidy axis maximum that still leaves the longest bar most of
- * the width (2002 → 2500, not 5000).
- */
-function niceCeil(value) {
-  if (value <= 0) {
-    return 1
-  }
-  const power = 10 ** Math.floor(Math.log10(value))
-  return [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]
-    .map((step) => step * power)
-    .find((top) => top >= value)
-}
-
-/**
- * One timing for every framework as a Mermaid bar chart, which GitHub draws
- * in its light and dark themes. One series in one color: the title names it,
- * and the table below carries every value. Vertical bars in a short, wide
- * chart: GitHub's chart frame cut a horizontal one off after the first bar.
- */
-function barChart(title, frameworks, values) {
-  const labels = frameworks.map(
-    (framework) => `"${FRAMEWORK_NAMES[framework]}"`,
-  )
-  return [
-    '```mermaid',
-    '---',
-    'config:',
-    '  xyChart:',
-    '    width: 600',
-    '    height: 300',
-    '---',
-    'xychart-beta',
-    `  title "${title}"`,
-    `  x-axis [${labels.join(', ')}]`,
-    `  y-axis "ms" 0 --> ${niceCeil(Math.max(...values))}`,
-    `  bar [${values.join(', ')}]`,
-    '```',
   ].join('\n')
 }
 
@@ -193,20 +145,10 @@ function platformSection(platform, results, base, { buildName, compareTitle }) {
   const sample = of(frameworks[0])
   const memoryKind = platform === 'ios' ? 'RSS' : 'PSS'
 
-  const charts = CHARTS.flatMap(([key, title]) => {
-    const values = frameworks.map((framework) =>
-      Math.round(of(framework).summary.timingsMs[key]?.median ?? Number.NaN),
-    )
-    return values.some(Number.isNaN)
-      ? []
-      : ['', barChart(title, frameworks, values)]
-  })
-
   const sections = [
     `### ${PLATFORM_NAMES[platform]}：${deviceLabel(platform, sample)}`,
     '',
     `${buildName}。${sample.iterations} 回の中央値（ウォームアップ ${sample.warmup} 回を除く）。`,
-    ...charts,
     '',
     '#### 時間',
     '',

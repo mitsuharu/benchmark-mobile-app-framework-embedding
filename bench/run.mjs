@@ -143,6 +143,11 @@ async function measure(framework) {
             appId: id,
             platform,
             settleMs,
+            // On a physical iPhone the app log is the output of the process
+            // agent-device launched, and `logs clear --restart` has just
+            // relaunched the app to capture it. Relaunching again would start
+            // a process whose markers never reach the log.
+            relaunch: !(physical && platform === 'ios'),
           })
           // Let the log stream flush the run's last markers.
           await device.call(['wait', '1500'])

@@ -1,0 +1,171 @@
+package com.example.sample.expo.brownfield.reposearchkit
+
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import expo.modules.brownfield.BrownfieldMessaging
+
+/**
+ * Writes the benchmark markers the React Native screen reports to logcat,
+ * where the benchmark runner reads them (see AGENTS.md in the benchmark
+ * repository).
+ *
+ * One listener for the whole app: call [start] once, next to
+ * `ReactNativeHostManager.shared.initialize()`.
+ */
+object BenchMarkerRelay {
+  private var listenerId: String? = null
+
+  fun start() {
+    if (listenerId != null) return
+    listenerId = BrownfieldMessaging.addListener { message ->
+      line(message)?.let { Log.i("Bench", it) }
+    }
+  }
+
+  /**
+   * The log line for one message, or null when it is not a marker. Public so
+   * host apps can unit test the format without a React Native runtime.
+   */
+  fun line(message: Map<String, Any?>): String? {
+    if (message["type"] != "benchMark") return null
+    val name = message["name"] as? String ?: return null
+    // JS numbers cross the bridge as boxed floating point values.
+    val epochMs = (message["epochMs"] as? Number)?.toLong() ?: return null
+    return "BENCH|$name|$epochMs"
+  }
+}
+
+/** One repository as it arrives from the React Native screen. */
+data class SearchedRepository(
+  val id: Int,
+  val fullName: String,
+  val stars: Int,
+  val language: String?,
+)
+
+/** What the React Native screen reports back. Mirrors `src/native/bridge.ts`. */
+sealed interface RepoSearchEvent {
+  data class Succeeded(val keyword: String, val repositories: List<SearchedRepository>) :
+    RepoSearchEvent
+
+  data class Failed(val keyword: String, val message: String) : RepoSearchEvent
+}
+
+/**
+ * What the host app asks the React Native screen to do. The mirror image of
+ * [RepoSearchEvent].
+ */
+sealed interface RepoSearchCommand {
+  /**
+   * Replaces the keyword on a screen that is already open. `initialProps` only
+   * reaches the screen while it is being created.
+   */
+  data class SetKeyword(val keyword: String) : RepoSearchCommand
+}
+
+/** The delegate-style callback. */
+fun interface RepoSearchListener {
+  fun onRepoSearchEvent(event: RepoSearchEvent)
+}
+
+/**
+ * Wraps `BrownfieldMessaging` — the raw `Map<String, Any?>` channel — into typed
+ * events, delivered on the main thread through either a listener or a lambda.
+ *
+ * This lives inside the brownfield library so host apps never have to know the
+ * wire format: they depend on the AAR and consume `RepoSearchEvent`.
+ *
+ * Listeners are global rather than lifecycle-bound, so registering in `onCreate`
+ * and releasing in `onDestroy` keeps messages flowing while the React Native
+ * activity is in the foreground.
+ */
+class RepoSearchBridge(
+  private val listener: RepoSearchListener? = null,
+  private val onEvent: ((RepoSearchEvent) -> Unit)? = null,
+) {
+  private val mainHandler = Handler(Looper.getMainLooper())
+  private var listenerId: String? = null
+
+  fun start() {
+    if (listenerId != null) return
+    listenerId = BrownfieldMessaging.addListener { message -> receive(message) }
+  }
+
+  fun stop() {
+    listenerId?.let { id ->
+      BrownfieldMessaging.removeListener(id)
+      listenerId = null
+    }
+  }
+
+  /**
+   * Sends a command to the React Native screen.
+   *
+   * Unlike receiving, this needs no listener: the message goes out whether or
+   * not the screen is on top, and is ignored when nothing is listening.
+   */
+  fun send(command: RepoSearchCommand) {
+    BrownfieldMessaging.sendMessage(payload(command))
+  }
+
+  companion object {
+    /**
+     * The wire format for a command. Public so host apps can unit test what
+     * crosses the bridge without a React Native runtime.
+     */
+    fun payload(command: RepoSearchCommand): Map<String, Any?> =
+      when (command) {
+        is RepoSearchCommand.SetKeyword ->
+          mapOf("type" to "setKeyword", "keyword" to command.keyword)
+      }
+  }
+
+  /**
+   * Converts one raw message and delivers the event on the main thread.
+   *
+   * The messaging channel calls this; it is public so host apps can unit test
+   * the conversion without standing up a React Native runtime.
+   */
+  fun receive(message: Map<String, Any?>) {
+    val event = makeEvent(message) ?: return
+    mainHandler.post {
+      listener?.onRepoSearchEvent(event)
+      onEvent?.invoke(event)
+    }
+  }
+
+  private fun makeEvent(message: Map<String, Any?>): RepoSearchEvent? {
+    val type = message["type"] as? String ?: return null
+    val keyword = message["keyword"] as? String ?: return null
+
+    return when (type) {
+      "searchSucceeded" -> {
+        val raw = message["repositories"] as? List<*> ?: emptyList<Any?>()
+        RepoSearchEvent.Succeeded(keyword, raw.mapNotNull { it.toSearchedRepository() })
+      }
+      "searchFailed" ->
+        RepoSearchEvent.Failed(keyword, message["message"] as? String ?: "unknown error")
+      // Messages this screen doesn't care about.
+      else -> null
+    }
+  }
+}
+
+/**
+ * JS numbers cross the bridge as boxed floating point values, so they are read
+ * as `Number` rather than `Int`.
+ */
+private fun Any?.toSearchedRepository(): SearchedRepository? {
+  val json = this as? Map<*, *> ?: return null
+  val id = (json["id"] as? Number)?.toInt() ?: return null
+  val fullName = json["fullName"] as? String ?: return null
+
+  return SearchedRepository(
+    id = id,
+    fullName = fullName,
+    stars = (json["stars"] as? Number)?.toInt() ?: 0,
+    // The JS side sends "" instead of null (see src/native/bridge.ts).
+    language = (json["language"] as? String)?.takeIf { it.isNotEmpty() },
+  )
+}

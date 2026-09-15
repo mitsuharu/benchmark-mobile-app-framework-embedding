@@ -1,0 +1,11 @@
+.gradle/
+build/
+local.properties
+.idea/
+.DS_Store
+
+# Populated by `npm run brownfield:android` in ../expo-app
+local-repo/
+
+# Kotlin 2.x session data
+.kotlin/

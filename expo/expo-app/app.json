@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "expo-app",
+    "slug": "expo-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.sample.expo.brownfield"
+    },
+    "android": {
+      "package": "com.example.sample.expo.brownfield",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "usePrecompiledModules": true
+          }
+        }
+      ],
+      [
+        "./plugins/withRepoSearchBridge",
+        {
+          "ios": {
+            "targetName": "RepoSearchKit",
+            "sources": ["native/ios/RepoSearchBridge.swift"]
+          },
+          "android": {
+            "libraryName": "reposearchkit",
+            "sourceDirs": ["native/android"]
+          }
+        }
+      ],
+      [
+        "expo-brownfield",
+        {
+          "ios": {
+            "targetName": "RepoSearchKit",
+            "bundleIdentifier": "com.example.sample.expo.brownfield.reposearchkit"
+          },
+          "android": {
+            "libraryName": "reposearchkit",
+            "package": "com.example.sample.expo.brownfield.reposearchkit",
+            "group": "com.example.sample.expo.brownfield",
+            "version": "1.0.1",
+            "publishing": [
+              {
+                "type": "localDirectory",
+                "name": "hostAppRepo",
+                "path": "../android-host/local-repo"
+              }
+            ]
+          }
+        }
+      ]
+    ]
+  }
+}

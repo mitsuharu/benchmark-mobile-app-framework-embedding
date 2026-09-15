@@ -31,6 +31,9 @@ targets:
           NSAllowsArbitraryLoads: false
           NSAllowsLocalNetworking: true
         NSLocalNetworkUsageDescription: Allows the React Native screen to connect to the Metro bundler during development.
+        # Handed to the React Native screen as `apiBaseUrl`. Empty means the
+        # real GitHub API; see AppConfig.swift.
+        BenchAPIBaseURL: $(BENCH_API_BASE_URL)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.sample.expo.brownfield.host
@@ -39,9 +42,16 @@ targets:
         SWIFT_VERSION: "5.0"
         TARGETED_DEVICE_FAMILY: "1,2"
         CODE_SIGN_STYLE: Automatic
+        # Overridden on the xcodebuild command line by the benchmark build,
+        # e.g. BENCH_API_BASE_URL=http://127.0.0.1:8787 (NSAllowsLocalNetworking
+        # above already lets it through).
+        BENCH_API_BASE_URL: ""
     dependencies:
       - package: RepoSearchKitPackage
         product: RepoSearchKitPackage-release
+    scheme:
+      testTargets:
+        - HostAppTests
 
   HostAppTests:
     type: bundle.unit-test

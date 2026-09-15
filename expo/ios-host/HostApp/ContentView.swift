@@ -27,6 +27,7 @@ final class SearchResultsStore: ObservableObject, RepoSearchBridgeDelegate {
   func repoSearchBridge(_ bridge: RepoSearchBridge, didReceive event: RepoSearchEvent) {
     switch event {
     case .succeeded(let keyword, let repositories):
+      BenchMarker.mark("resultsReceived")
       self.lastKeyword = keyword
       self.repositories = repositories
       self.errorMessage = nil
@@ -38,26 +39,42 @@ final class SearchResultsStore: ObservableObject, RepoSearchBridgeDelegate {
   }
 }
 
+/// Where the navigation stack can go.
+enum Route: Hashable {
+  case repoSearch(keyword: String)
+}
+
+/// What the React Native screen is given when it is created.
+private func initialProps(keyword: String) -> [String: Any] {
+  ["keyword": keyword, "apiBaseUrl": AppConfig.apiBaseURL.absoluteString]
+}
+
 /// The native part of the app. The keyword is typed here and passed into
 /// React Native, and the results come back through `RepoSearchBridge`.
 struct ContentView: View {
   @StateObject private var store = SearchResultsStore()
+  @State private var path: [Route] = []
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       List {
         Section("検索ワード") {
           TextField("keyword", text: $store.keyword)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
+            .accessibilityIdentifier("keywordField")
         }
 
         Section("React Native") {
-          NavigationLink {
-            RepoSearchScreen(keyword: store.effectiveKeyword)
+          // A button rather than a NavigationLink, so the tap itself can be
+          // marked: the benchmark measures from here to the screen's first frame.
+          Button {
+            BenchMarker.mark("embedOpenTapped")
+            path.append(.repoSearch(keyword: store.effectiveKeyword))
           } label: {
             Label("SwiftUI から開く", systemImage: "magnifyingglass")
           }
+          .accessibilityIdentifier("openEmbedded")
 
           NavigationLink {
             RepoSearchUIKitScreen(keyword: store.effectiveKeyword)
@@ -81,6 +98,13 @@ struct ContentView: View {
         }
       }
       .navigationTitle("Host App")
+      .navigationDestination(for: Route.self) { route in
+        switch route {
+        case .repoSearch(let keyword):
+          RepoSearchScreen(keyword: keyword)
+        }
+      }
+      .onAppear { BenchMarker.markLaunch() }
     }
     // Attached to the NavigationStack, not the List: pushing a link makes the
     // List disappear, and the RN screen reports its results while it is on top.
@@ -99,7 +123,7 @@ private struct RepoSearchScreen: View {
   private let bridge = RepoSearchBridge()
 
   var body: some View {
-    ReactNativeView(moduleName: "main", initialProps: ["keyword": keyword])
+    ReactNativeView(moduleName: "main", initialProps: initialProps(keyword: keyword))
       .ignoresSafeArea(edges: .bottom)
       .navigationTitle("Repo Search (RN)")
       .navigationBarTitleDisplayMode(.inline)
@@ -109,7 +133,10 @@ private struct RepoSearchScreen: View {
         Menu("キーワード") {
           Section("ネイティブ → RN にメッセージ送信") {
             ForEach(presetKeywords, id: \.self) { preset in
-              Button(preset) { bridge.send(.setKeyword(preset)) }
+              Button(preset) {
+                BenchMarker.mark("commandSent")
+                bridge.send(.setKeyword(preset))
+              }
             }
           }
         }
@@ -162,7 +189,7 @@ private struct ReactNativeViewControllerRepresentable: UIViewControllerRepresent
   let keyword: String
 
   func makeUIViewController(context: Context) -> UIViewController {
-    ReactNativeViewController(moduleName: "main", initialProps: ["keyword": keyword])
+    ReactNativeViewController(moduleName: "main", initialProps: initialProps(keyword: keyword))
   }
 
   func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

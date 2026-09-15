@@ -22,10 +22,12 @@ export const SELECTORS = {
   },
   android: {
     openEmbedded: 'id="openEmbedded"',
-    // React Native exposes a Pressable and the Text inside it as two
-    // actionable nodes with the same text, so pick the button.
-    search: 'role="button" label="リポジトリを検索"',
-    back: 'role="button" label="ネイティブに戻る"',
+    // The buttons look different on each framework: React Native exposes a
+    // Pressable and the Text inside it as two actionable nodes with the same
+    // text, while a Compose button is an unlabelled group around its Text.
+    // Finding by text and taking the first match hits the button in both.
+    search: { find: 'リポジトリを検索' },
+    back: { find: 'ネイティブに戻る' },
     sendCommand: ['text="swift"'],
   },
 }
@@ -66,12 +68,18 @@ export async function runScenario(device, { appId, platform, settleMs }) {
       platform,
     )
   }
+  const tap = (target) =>
+    device.call(
+      typeof target === 'string'
+        ? ['press', target]
+        : ['find', target.find, 'click', '--first'],
+    )
   const openEmbedded = async () => {
     await device.call(['press', selectors.openEmbedded])
     await device.call(['wait', 'text', SEARCH_BUTTON_TEXT, String(WAIT_MS)])
   }
   const backToHost = async () => {
-    await device.call(['press', selectors.back])
+    await tap(selectors.back)
     await device.call(['wait', selectors.openEmbedded, String(WAIT_MS)])
   }
 
@@ -82,7 +90,7 @@ export async function runScenario(device, { appId, platform, settleMs }) {
   await openEmbedded()
   await settleAndSample('embedOpened')
 
-  await device.call(['press', selectors.search])
+  await tap(selectors.search)
   await device.call(['wait', 'text', FIRST_RESULT_TEXT, String(WAIT_MS)])
   await settleAndSample('afterSearch')
 

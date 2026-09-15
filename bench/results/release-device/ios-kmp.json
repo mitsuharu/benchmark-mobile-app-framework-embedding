@@ -6,7 +6,8 @@
   "appId": "com.example.benchmark.kmp.host",
   "device": {
     "name": "mitsuharu-iPhoneXR",
-    "id": "00008020-0001458614C3002E"
+    "id": "00008020-0001458614C3002E",
+    "label": "iPhone XR 実機（iOS 18.7）"
   },
   "measuredAt": "2026-09-15T07:35:23.882Z",
   "agentDevice": "0.21.1",

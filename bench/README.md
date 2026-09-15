@@ -88,6 +88,9 @@ export AGENT_DEVICE_IOS_BUNDLE_ID=<一意な ID>.agentdevice.runner
 node run.mjs --platform ios --framework all --physical --udid <UDID>
 ```
 
+README の表の見出しに出す端末名は `--device-label` で渡せます（例: `--device-label "iPhone XR 実機（iOS 18.7）"`）。
+渡さないときは、agent-device が返す端末名に「シミュレータ / エミュレータ / 実機」を付けて表示します。
+
 - Android の実機は開発者オプションの USB デバッグが必要です。Xiaomi（HyperOS / MIUI）は
   「USB 経由でインストール」と「USB デバッグ（セキュリティ設定）」も有効にしないと、インストールやタップができません。
 - iPhone はデベロッパモードを有効にし、計測中はロックを解除しておきます。

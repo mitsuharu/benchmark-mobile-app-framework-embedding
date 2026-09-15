@@ -4,7 +4,8 @@
   "appId": "com.example.benchmark.kmp.host",
   "device": {
     "name": "bench api36",
-    "id": "emulator-5554"
+    "id": "emulator-5554",
+    "label": "Pixel 9 エミュレータ（API 36）"
   },
   "measuredAt": "2026-09-15T03:13:44.854Z",
   "agentDevice": "0.21.1",

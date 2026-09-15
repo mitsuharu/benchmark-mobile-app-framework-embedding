@@ -99,18 +99,40 @@ async function measure(framework) {
     await device.call(['install', id, artifact, ...target])
   }
   const opened = await device.call(['open', id, '--relaunch', ...target])
-  await device.call(['logs', 'clear', '--restart'])
+
+  // The session log is read after every run and then cleared. An iOS run logs
+  // megabytes (the XCTest runner is chatty), and agent-device rotates app.log
+  // past 5 MB keeping one generation, so reading once at the end loses the
+  // first runs' markers.
+  const readIfPresent = (file) => readFile(file, 'utf8').catch(() => '')
+  const readSessionLog = async () => {
+    const { path: logPath } = await device.call(['logs', 'path'])
+    return `${await readIfPresent(`${logPath}.1`)}\n${await readIfPresent(logPath)}`
+  }
 
   const total = warmup + iterations
   const runs = []
   try {
     for (let index = 0; index < total; index++) {
       for (let attempt = 0; ; attempt++) {
+        await device.call(['logs', 'clear', '--restart'])
         await device.call(['logs', 'mark', iterationLabel(index)])
         try {
-          runs.push(
-            await runScenario(device, { appId: id, platform, settleMs }),
+          const run = await runScenario(device, {
+            appId: id,
+            platform,
+            settleMs,
+          })
+          // Let the log stream flush the run's last markers.
+          await device.call(['wait', '1500'])
+          const [segment] = splitByIteration(
+            (await readSessionLog()).replaceAll(
+              iterationLabel(index),
+              iterationLabel(0),
+            ),
+            1,
           )
+          runs.push({ ...run, markers: parseMarkers(segment) })
           break
         } catch (error) {
           if (attempt >= retries) {
@@ -125,25 +147,16 @@ async function measure(framework) {
         `${platform}/${framework}: run ${index + 1}/${total}${index < warmup ? ' (warm-up)' : ''}`,
       )
     }
-    // Let the log stream flush the last run's markers.
-    await device.call(['wait', '1500'])
   } finally {
     await device.call(['logs', 'stop']).catch(() => {})
   }
-
-  // agent-device rotates app.log to app.log.1 past 5 MB and keeps one
-  // generation, so a long run's first iterations can sit in the older file.
-  const { path: logPath } = await device.call(['logs', 'path'])
-  const readIfPresent = (file) => readFile(file, 'utf8').catch(() => '')
-  const sessionLog = `${await readIfPresent(`${logPath}.1`)}\n${await readFile(logPath, 'utf8')}`
-  const segments = splitByIteration(sessionLog, total)
   await device.call(['close']).catch(() => {})
 
-  const all = runs.map((run, index) => ({
+  const all = runs.map(({ markers, ...run }, index) => ({
     index,
     warmup: index < warmup,
     ...run,
-    timings: computeTimings(parseMarkers(segments[index])),
+    timings: computeTimings(markers),
   }))
   const measured = all.filter((run) => !run.warmup)
 

@@ -135,8 +135,8 @@ async function measure(framework) {
   // generation, so a long run's first iterations can sit in the older file.
   const { path: logPath } = await device.call(['logs', 'path'])
   const readIfPresent = (file) => readFile(file, 'utf8').catch(() => '')
-  const log = `${await readIfPresent(`${logPath}.1`)}\n${await readFile(logPath, 'utf8')}`
-  const segments = splitByIteration(log, total)
+  const sessionLog = `${await readIfPresent(`${logPath}.1`)}\n${await readFile(logPath, 'utf8')}`
+  const segments = splitByIteration(sessionLog, total)
   await device.call(['close']).catch(() => {})
 
   const all = runs.map((run, index) => ({

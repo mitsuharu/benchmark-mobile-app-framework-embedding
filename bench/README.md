@@ -31,6 +31,53 @@ npm run mock-server -- --delay-ms 200 --quiet
 | iOS シミュレータ | `http://127.0.0.1:8787`（ホストとネットワークを共有している） |
 | Android エミュレータ | `http://10.0.2.2:8787`（エミュレータからホストのループバックへの固定アドレス） |
 
+## 計測ランナー
+
+[agent-device](https://github.com/callstack/agent-device) で iOS シミュレータ / Android エミュレータを操作し、
+全実装を同じシナリオで計測します。手順の全体は [run-benchmark スキル](../.claude/skills/run-benchmark/SKILL.md) にまとめています。
+
+```bash
+npm ci
+npm run mock-server -- --quiet &                # 計測中は常に起動しておく
+./scripts/build.sh native ios                   # 計測用ビルド → artifacts/<framework>/<platform>/
+node run.mjs --platform ios --framework native  # → results/ios-native.json
+node report.mjs                                 # Markdown の表にする（--write でルート README を更新）
+```
+
+### 1 回分のシナリオ
+
+`run.mjs` は次の流れを `--warmup`（既定 1）+ `--iterations`（既定 5）回繰り返します。
+
+1. `agent-device open <app> --relaunch` でコールド起動する
+2. ホスト画面が出たら、落ち着くのを待って（`--settle-ms`、既定 2 秒）メモリを取る
+3. 埋め込み画面を開く → メモリ
+4. 「リポジトリを検索」→ 結果が出たらメモリ
+5. ホストからキーワード `swift` を送る
+6. 「ネイティブに戻る」→ メモリ
+7. もう一度開いて戻る（2 回目の表示）
+
+### 指標
+
+時間はアプリが出すマーカー（[AGENTS.md](../AGENTS.md)）の差で、agent-device の操作時間は含みません。
+
+| 指標 | マーカー |
+| --- | --- |
+| コールドスタート | `processStart` → `hostFirstFrame` |
+| 埋め込み画面の表示（初回 / 2 回目） | `embedOpenTapped` → `embedFirstFrame` |
+| 検索 → 描画 | `searchTapped` → `searchRendered` |
+| 検索 → ホストが受信 | `searchTapped` → `resultsReceived` |
+| キーワード差し替え | `commandSent` → `keywordApplied` |
+
+メモリは `agent-device perf memory sample` の値で、iOS はプロセスの常駐サイズ（`ps` の RSS）、
+Android は `dumpsys meminfo` の PSS です。プラットフォーム間では比較できません。
+`agent-device open` が返す `startup.durationMs`（open コマンドの往復時間）も参考値として JSON に残します。
+
+### 注意
+
+- iOS の Flutter だけは Debug（JIT）のフレームワークで計測します。Release（AOT）はシミュレータで動かないためです（[flutter/README.md](../flutter/README.md)）。
+- Xcode の Build Location がカスタムの場合の注意は [スキル](../.claude/skills/run-benchmark/SKILL.md) を参照してください。
+- 計測中は Mac で他のビルドなどを走らせないでください。数値が大きくぶれます。
+
 ## 開発
 
 ```bash

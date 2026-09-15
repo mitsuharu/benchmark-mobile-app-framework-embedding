@@ -2,7 +2,39 @@ package com.example.sample.expo.brownfield.reposearchkit
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import expo.modules.brownfield.BrownfieldMessaging
+
+/**
+ * Writes the benchmark markers the React Native screen reports to logcat,
+ * where the benchmark runner reads them (see AGENTS.md in the benchmark
+ * repository).
+ *
+ * One listener for the whole app: call [start] once, next to
+ * `ReactNativeHostManager.shared.initialize()`.
+ */
+object BenchMarkerRelay {
+  private var listenerId: String? = null
+
+  fun start() {
+    if (listenerId != null) return
+    listenerId = BrownfieldMessaging.addListener { message ->
+      line(message)?.let { Log.i("Bench", it) }
+    }
+  }
+
+  /**
+   * The log line for one message, or null when it is not a marker. Public so
+   * host apps can unit test the format without a React Native runtime.
+   */
+  fun line(message: Map<String, Any?>): String? {
+    if (message["type"] != "benchMark") return null
+    val name = message["name"] as? String ?: return null
+    // JS numbers cross the bridge as boxed floating point values.
+    val epochMs = (message["epochMs"] as? Number)?.toLong() ?: return null
+    return "BENCH|$name|$epochMs"
+  }
+}
 
 /** One repository as it arrives from the React Native screen. */
 data class SearchedRepository(

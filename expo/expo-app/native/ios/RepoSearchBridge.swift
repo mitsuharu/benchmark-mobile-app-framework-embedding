@@ -1,4 +1,46 @@
 import Foundation
+import os
+
+/// Writes the benchmark markers the React Native screen reports to unified
+/// logging, where the benchmark runner reads them (see AGENTS.md in the
+/// benchmark repository). JS has no way to reach unified logging itself in a
+/// release build.
+///
+/// One listener for the whole app: call `start()` once, next to
+/// `ReactNativeHostManager.shared.initialize()`.
+public enum BenchMarkerRelay {
+  private static let logger = Logger(subsystem: "bench", category: "marker")
+  private static var listenerID: String?
+
+  public static func start() {
+    guard listenerID == nil else { return }
+    listenerID = BrownfieldMessaging.addListener { message in
+      guard let line = line(for: message) else { return }
+      // Interpolated values are redacted as <private> in release builds
+      // unless they are explicitly public.
+      logger.notice("\(line, privacy: .public)")
+    }
+  }
+
+  /// The log line for one message, or nil when it is not a marker. Public so
+  /// host apps can unit test the format without a React Native runtime.
+  public static func line(for message: [String: Any?]) -> String? {
+    guard message["type"] as? String == "benchMark", let name = message["name"] as? String
+    else {
+      return nil
+    }
+    // Every JS number crosses the bridge as a Double.
+    let epochMs: Int64
+    if let value = message["epochMs"] as? Double {
+      epochMs = Int64(value)
+    } else if let value = message["epochMs"] as? Int {
+      epochMs = Int64(value)
+    } else {
+      return nil
+    }
+    return "BENCH|\(name)|\(epochMs)"
+  }
+}
 
 /// One repository as it arrives from the React Native screen.
 public struct SearchedRepository: Identifiable, Hashable {

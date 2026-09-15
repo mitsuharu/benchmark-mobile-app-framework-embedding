@@ -33,11 +33,20 @@ export const SELECTORS = {
 }
 
 /** Text that proves each stage has been reached. */
-const SEARCH_BUTTON_TEXT = 'リポジトリを検索'
-const FIRST_RESULT_TEXT = 'expo/expo'
-const COMMAND_APPLIED_TEXT = 'keyword: swift'
+export const SEARCH_BUTTON_TEXT = 'リポジトリを検索'
+export const FIRST_RESULT_TEXT = 'expo/expo'
+export const COMMAND_APPLIED_TEXT = 'keyword: swift'
 
-const WAIT_MS = 30_000
+export const WAIT_MS = 30_000
+
+/** Taps a control given as a selector or as `{ find: text }` (see SELECTORS). */
+export function tap(device, target) {
+  return device.call(
+    typeof target === 'string'
+      ? ['press', target]
+      : ['find', target.find, 'click', '--first'],
+  )
+}
 
 /** The process memory reported by `perf memory sample`, in kB. */
 export function memoryKb(data, platform) {
@@ -68,18 +77,12 @@ export async function runScenario(device, { appId, platform, settleMs }) {
       platform,
     )
   }
-  const tap = (target) =>
-    device.call(
-      typeof target === 'string'
-        ? ['press', target]
-        : ['find', target.find, 'click', '--first'],
-    )
   const openEmbedded = async () => {
     await device.call(['press', selectors.openEmbedded])
     await device.call(['wait', 'text', SEARCH_BUTTON_TEXT, String(WAIT_MS)])
   }
   const backToHost = async () => {
-    await tap(selectors.back)
+    await tap(device, selectors.back)
     await device.call(['wait', selectors.openEmbedded, String(WAIT_MS)])
   }
 
@@ -90,7 +93,7 @@ export async function runScenario(device, { appId, platform, settleMs }) {
   await openEmbedded()
   await settleAndSample('embedOpened')
 
-  await tap(selectors.search)
+  await tap(device, selectors.search)
   await device.call(['wait', 'text', FIRST_RESULT_TEXT, String(WAIT_MS)])
   await settleAndSample('afterSearch')
 

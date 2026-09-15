@@ -8,13 +8,13 @@
  *
  * Build the apps first with scripts/build.sh, and keep mock-server running.
  */
-import { execFile } from 'node:child_process'
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs, promisify } from 'node:util'
+import { parseArgs } from 'node:util'
 
 import { AgentDevice } from './lib/agent-device.mjs'
+import { MOCK_SERVER_PORT, reversePort } from './lib/android.mjs'
 import { iterationLabel, splitByIteration } from './lib/log-segments.mjs'
 import { computeTimings, parseMarkers } from './lib/markers.mjs'
 import { runScenario } from './lib/scenario.mjs'
@@ -60,28 +60,6 @@ const target = [
 ]
 
 const log = (line) => console.log(`[bench] ${line}`)
-
-const MOCK_SERVER_PORT = 8787
-
-/**
- * Makes the mock server answer on the emulator's own 127.0.0.1.
- *
- * The emulator can reach the host's loopback through 10.0.2.2, but every
- * request through that NAT took 0.6-1 s on the machine this was built on,
- * which drowned out the differences being measured. `adb reverse` forwards
- * the port instead (a few ms). agent-device has no command for it, and this
- * is device setup rather than UI automation, so adb is called directly.
- */
-async function reverseMockServerPort() {
-  const sdk = process.env.ANDROID_HOME ?? process.env.ANDROID_SDK_ROOT
-  const adb = sdk ? path.join(sdk, 'platform-tools', 'adb') : 'adb'
-  await promisify(execFile)(adb, [
-    ...(options.serial ? ['-s', options.serial] : []),
-    'reverse',
-    `tcp:${MOCK_SERVER_PORT}`,
-    `tcp:${MOCK_SERVER_PORT}`,
-  ])
-}
 
 async function sizeOf(file) {
   const info = await stat(file)
@@ -211,7 +189,7 @@ const outDir = path.resolve(
 await mkdir(outDir, { recursive: true })
 
 if (platform === 'android') {
-  await reverseMockServerPort()
+  await reversePort(MOCK_SERVER_PORT, { serial: options.serial })
 }
 
 for (const framework of frameworks) {

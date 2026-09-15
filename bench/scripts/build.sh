@@ -16,10 +16,11 @@ PLATFORM="${2:?platform: ios or android}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$ROOT/bench/artifacts/$FRAMEWORK/$PLATFORM"
 
-# The iOS simulator shares the host's network; the Android emulator reaches
-# the host's loopback through 10.0.2.2.
+# The iOS simulator shares the host's network. The Android emulator reaches
+# the mock server on its own loopback too: run.mjs sets up `adb reverse`,
+# because going through the emulator's NAT (10.0.2.2) took 0.6-1 s a request.
 IOS_API_BASE_URL="http://127.0.0.1:8787"
-ANDROID_API_BASE_URL="http://10.0.2.2:8787"
+ANDROID_API_BASE_URL="http://127.0.0.1:8787"
 
 build_ios_host() {
   local host="$1"

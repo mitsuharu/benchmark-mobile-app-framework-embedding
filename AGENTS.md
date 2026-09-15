@@ -33,7 +33,7 @@
 - **埋め込み → ネイティブ**: `searchSucceeded`（`keyword`, `repositories[id, fullName, stars, language]`）と
   `searchFailed`（`keyword`, `message`）
 - **API のベース URL** は差し替えられるようにする。既定は `https://api.github.com`、
-  計測時は `bench/mock-server`（iOS: `http://127.0.0.1:8787`、Android: `http://10.0.2.2:8787`）
+  計測時は `bench/mock-server`（iOS / Android とも `http://127.0.0.1:8787`。Android は `adb reverse` でエミュレータ内に転送する）
 
 ### 画面の文言と識別子
 

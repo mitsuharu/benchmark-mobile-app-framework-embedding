@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 /**
- * Turns results/<build>/*.json into the Markdown tables of the root README.
+ * Turns results/<section>/*.json into the Markdown tables of the root README.
  *
  *   node report.mjs            # print the tables
- *   node report.mjs --write    # replace each build's section in ../README.md
+ *   node report.mjs --write    # replace each section in ../README.md
  *
- * Each build has its own section between
- * `<!-- bench:results:<build>:start -->` and `<!-- bench:results:<build>:end -->`.
- * The debug section also compares every figure with the release build.
+ * Each section has its own place between
+ * `<!-- bench:results:<section>:start -->` and `<!-- bench:results:<section>:end -->`.
+ * The debug and physical-device sections also compare every figure with the
+ * release build on the simulator / emulator.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { BUILDS, FRAMEWORKS, PLATFORMS } from './lib/targets.mjs'
+import { FRAMEWORKS, PLATFORMS } from './lib/targets.mjs'
 
 const { values: options } = parseArgs({
   options: {
@@ -25,9 +26,25 @@ const { values: options } = parseArgs({
 
 const BENCH_ROOT = path.dirname(fileURLToPath(import.meta.url))
 const README = path.join(BENCH_ROOT, '..', 'README.md')
-const markers = (build) => [
-  `<!-- bench:results:${build}:start -->`,
-  `<!-- bench:results:${build}:end -->`,
+const markers = (section) => [
+  `<!-- bench:results:${section}:start -->`,
+  `<!-- bench:results:${section}:end -->`,
+]
+
+/** The README sections, each read from results/<id>/ (see run.mjs). */
+const SECTIONS = [
+  { id: 'release' },
+  {
+    id: 'debug',
+    base: 'release',
+    compareTitle: 'リリースビルドとの比較（リリース → デバッグ）',
+  },
+  {
+    id: 'release-device',
+    base: 'release',
+    compareTitle:
+      'シミュレータ / エミュレータとの比較（シミュレータ・エミュレータ → 実機）',
+  },
 ]
 
 const PLATFORM_NAMES = { ios: 'iOS', android: 'Android' }
@@ -68,22 +85,29 @@ function table(header, rows) {
   ].join('\n')
 }
 
-/** Results by build, then by `<platform>/<framework>`. */
+/** Results by section, then by `<platform>/<framework>`. */
 async function loadResults() {
   const results = {}
-  for (const build of BUILDS) {
-    const dir = path.resolve(BENCH_ROOT, options.results, build)
+  for (const { id } of SECTIONS) {
+    const dir = path.resolve(BENCH_ROOT, options.results, id)
     const files = await readdir(dir).catch(() => [])
     for (const file of files.filter((name) => name.endsWith('.json'))) {
       const result = JSON.parse(await readFile(path.join(dir, file), 'utf8'))
-      results[build] ??= {}
-      results[build][`${result.platform}/${result.framework}`] = result
+      results[id] ??= {}
+      results[id][`${result.platform}/${result.framework}`] = result
     }
   }
   return results
 }
 
-function platformSection(platform, results, release) {
+function sizeLabel(platform, result) {
+  if (platform === 'ios') {
+    return result.physical ? '.app（実機向け）' : '.app（シミュレータ向け）'
+  }
+  return result.build === 'debug' ? 'APK' : 'APK（R8 有効）'
+}
+
+function platformSection(platform, results, base, compareTitle) {
   const frameworks = FRAMEWORKS.filter(
     (framework) => results[`${platform}/${framework}`],
   )
@@ -97,12 +121,6 @@ function platformSection(platform, results, release) {
   ]
   const sample = of(frameworks[0])
   const memoryKind = platform === 'ios' ? 'RSS' : 'PSS'
-  const sizeLabel =
-    platform === 'ios'
-      ? '.app（シミュレータ向け）'
-      : sample.build === 'debug'
-        ? 'APK'
-        : 'APK（R8 有効）'
 
   const sections = [
     `### ${PLATFORM_NAMES[platform]}`,
@@ -136,20 +154,23 @@ function platformSection(platform, results, release) {
     '#### アプリサイズ',
     '',
     table(header, [
-      [sizeLabel, ...frameworks.map((framework) => appSize(of(framework)))],
+      [
+        sizeLabel(platform, sample),
+        ...frameworks.map((framework) => appSize(of(framework))),
+      ],
     ]),
   ]
 
-  // How far each debug figure is from the release build's.
-  const compared = release
-    ? frameworks.filter((framework) => release[`${platform}/${framework}`])
+  // How far each figure is from the base section's.
+  const compared = base
+    ? frameworks.filter((framework) => base[`${platform}/${framework}`])
     : []
   if (compared.length > 0) {
-    const releaseOf = (framework) => release[`${platform}/${framework}`]
+    const baseOf = (framework) => base[`${platform}/${framework}`]
     const arrow = (before, after) => `${before} → ${after}`
     sections.push(
       '',
-      '#### リリースビルドとの比較（リリース → デバッグ）',
+      `#### ${compareTitle}`,
       '',
       table(
         ['', ...compared.map((framework) => FRAMEWORK_NAMES[framework])],
@@ -158,7 +179,7 @@ function platformSection(platform, results, release) {
             label,
             ...compared.map((framework) =>
               arrow(
-                ms(releaseOf(framework).summary.timingsMs[key]),
+                ms(baseOf(framework).summary.timingsMs[key]),
                 ms(of(framework).summary.timingsMs[key]),
               ),
             ),
@@ -167,7 +188,7 @@ function platformSection(platform, results, release) {
             `メモリ（${memoryKind}、検索後）`,
             ...compared.map((framework) =>
               arrow(
-                memory(releaseOf(framework).summary.memoryKb.afterSearch),
+                memory(baseOf(framework).summary.memoryKb.afterSearch),
                 memory(of(framework).summary.memoryKb.afterSearch),
               ),
             ),
@@ -175,7 +196,7 @@ function platformSection(platform, results, release) {
           [
             'アプリサイズ',
             ...compared.map((framework) =>
-              arrow(appSize(releaseOf(framework)), appSize(of(framework))),
+              arrow(appSize(baseOf(framework)), appSize(of(framework))),
             ),
           ],
         ],
@@ -185,37 +206,43 @@ function platformSection(platform, results, release) {
   return sections.join('\n')
 }
 
-function buildSection(build, results) {
-  const release = build === 'release' ? null : results.release
+function renderSection({ id, base, compareTitle }, results) {
   return PLATFORMS.map((platform) =>
-    platformSection(platform, results[build], release),
+    platformSection(
+      platform,
+      results[id],
+      base ? results[base] : null,
+      compareTitle,
+    ),
   )
     .filter(Boolean)
     .join('\n\n')
 }
 
 const results = await loadResults()
-const builds = BUILDS.filter((build) => results[build])
+const sections = SECTIONS.filter(({ id }) => results[id])
 
 if (!options.write) {
   console.log(
-    builds
-      .map((build) => `## ${build}\n\n${buildSection(build, results)}`)
+    sections
+      .map(
+        (section) => `## ${section.id}\n\n${renderSection(section, results)}`,
+      )
       .join('\n\n'),
   )
 } else {
   let readme = await readFile(README, 'utf8')
-  for (const build of builds) {
-    const [start, end] = markers(build)
+  for (const section of sections) {
+    const [start, end] = markers(section.id)
     const from = readme.indexOf(start)
     const to = readme.indexOf(end)
     if (from === -1 || to === -1) {
       throw new Error(`README.md has no ${start} ... ${end} section`)
     }
-    readme = `${readme.slice(0, from + start.length)}\n\n${buildSection(build, results)}\n\n${readme.slice(to)}`
+    readme = `${readme.slice(0, from + start.length)}\n\n${renderSection(section, results)}\n\n${readme.slice(to)}`
   }
   await writeFile(README, readme)
   console.log(
-    `Updated ${path.relative(process.cwd(), README)} (${builds.join(', ')})`,
+    `Updated ${path.relative(process.cwd(), README)} (${sections.map(({ id }) => id).join(', ')})`,
   )
 }

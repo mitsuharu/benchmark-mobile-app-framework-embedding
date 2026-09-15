@@ -26,6 +26,9 @@ targets:
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: false
           NSAllowsLocalNetworking: true
+        # A physical device reaches bench/mock-server over the LAN, which iOS
+        # asks the user to allow once.
+        NSLocalNetworkUsageDescription: ベンチマーク用のモックサーバーに接続します。
         # Empty means the real GitHub API; see AppConfig.swift.
         BenchAPIBaseURL: $(BENCH_API_BASE_URL)
     settings:

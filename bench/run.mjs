@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /**
  * Runs the benchmark scenario against the benchmark builds in artifacts/ and
- * writes the raw numbers to results/<build>/<platform>-<framework>.json.
+ * writes the raw numbers to results/<build>/<platform>-<framework>.json
+ * (results/<build>-device/ with --physical).
  *
  *   node run.mjs --platform ios --framework native
  *   node run.mjs --platform android --framework all --iterations 10
  *   node run.mjs --platform ios --framework all --build debug
+ *   node run.mjs --platform android --framework all --physical --serial <serial>
  *
  * Build the apps first with scripts/build.sh, and keep mock-server running.
  * The Expo debug build also needs Metro (`npx expo start` in expo/expo-app).
@@ -41,6 +43,7 @@ const { values: options } = parseArgs({
     udid: { type: 'string' },
     serial: { type: 'string' },
     build: { type: 'string', default: 'release' },
+    physical: { type: 'boolean', default: false },
     out: { type: 'string', default: 'results' },
     'skip-install': { type: 'boolean', default: false },
     verbose: { type: 'boolean', default: false },
@@ -63,6 +66,9 @@ if (!BUILDS.includes(build)) {
   console.error(`--build must be one of: ${BUILDS.join(', ')}`)
   process.exit(1)
 }
+/** Physical devices are measured on their own and reported separately. */
+const physical = options.physical
+const resultsName = physical ? `${build}-device` : build
 
 /** Selects the device on the first command; the session remembers it. */
 const target = [
@@ -99,9 +105,9 @@ function summarizeRuns(runs, pick) {
 
 async function measure(framework) {
   const id = appId(framework, platform)
-  const artifact = artifactPath(framework, platform, build)
+  const artifact = artifactPath(framework, platform, build, physical)
   const device = new AgentDevice({
-    session: `bench-${platform}`,
+    session: `bench-${platform}${physical ? '-device' : ''}`,
     log: options.verbose ? log : () => {},
   })
 
@@ -179,6 +185,7 @@ async function measure(framework) {
     framework,
     platform,
     build,
+    physical,
     appId: id,
     device: { name: opened.device, id: opened.id },
     measuredAt: new Date().toISOString(),
@@ -200,7 +207,7 @@ async function measure(framework) {
 const outDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   options.out,
-  build,
+  resultsName,
 )
 await mkdir(outDir, { recursive: true })
 

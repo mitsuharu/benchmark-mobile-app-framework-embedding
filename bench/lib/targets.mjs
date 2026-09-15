@@ -34,8 +34,18 @@ export function appId(framework, platform) {
 /** How the apps are built; see scripts/build.sh. */
 export const BUILDS = ['release', 'debug']
 
-/** The installable build that scripts/build.sh produces. */
-export function artifactPath(framework, platform, build = 'release') {
+/**
+ * The installable build that scripts/build.sh produces. An iOS build for a
+ * physical device is a separate, signed build for iphoneos; Android runs the
+ * same APK on emulators and devices.
+ */
+export function artifactPath(
+  framework,
+  platform,
+  build = 'release',
+  physical = false,
+) {
   const file = platform === 'ios' ? 'HostApp.app' : `app-${build}.apk`
-  return path.join(BENCH_ROOT, 'artifacts', build, framework, platform, file)
+  const dir = platform === 'ios' && physical ? 'ios-device' : platform
+  return path.join(BENCH_ROOT, 'artifacts', build, framework, dir, file)
 }

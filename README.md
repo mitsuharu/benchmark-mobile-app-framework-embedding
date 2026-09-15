@@ -294,6 +294,22 @@ iOS:
 - デバッグビルドの差は「開発中の体感」の目安にはなりますが、フレームワークの性能の比較には
   [リリースビルドの結果](#計測結果) を使ってください。特に Android では、デバッグビルドの差がリリースの差とは大きく異なります。
 
+## 実機での計測結果
+
+シミュレータ / エミュレータの結果が実機でも同じ傾向になるかを、リリースビルドで確かめたものです。
+
+| | iOS | Android |
+| --- | --- | --- |
+| 端末 | iPhone 17（iOS 27.0） | Redmi 12 5G（Snapdragon 4 Gen 2、Android 15 / HyperOS 2.0） |
+| ビルド | 実機向けのリリースビルド（開発用の証明書で署名）。**Flutter もリリース（AOT）** | エミュレータと同じ APK（R8 有効） |
+| モックサーバ | Mac の LAN のアドレス（Wi‑Fi 経由） | USB 経由の `adb reverse` |
+
+<!-- bench:results:release-device:start -->
+
+（計測後に `node bench/report.mjs --write` で差し替えます）
+
+<!-- bench:results:release-device:end -->
+
 ## 計測をやり直す
 
 手順は [run-benchmark スキル](.claude/skills/run-benchmark/SKILL.md) にまとめています。概略は次のとおりです。

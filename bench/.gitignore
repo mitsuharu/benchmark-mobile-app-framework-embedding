@@ -3,3 +3,6 @@ artifacts/
 
 # Trial runs; the measured results under results/ are committed.
 results/trial/
+
+# Progress logs of a run (node run.mjs > results-<platform>.log)
+results-*.log

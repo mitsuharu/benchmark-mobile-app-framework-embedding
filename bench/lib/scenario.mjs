@@ -22,8 +22,10 @@ export const SELECTORS = {
   },
   android: {
     openEmbedded: 'id="openEmbedded"',
-    search: 'text="リポジトリを検索"',
-    back: 'text="ネイティブに戻る"',
+    // React Native exposes a Pressable and the Text inside it as two
+    // actionable nodes with the same text, so pick the button.
+    search: 'role="button" label="リポジトリを検索"',
+    back: 'role="button" label="ネイティブに戻る"',
     sendCommand: ['text="swift"'],
   },
 }

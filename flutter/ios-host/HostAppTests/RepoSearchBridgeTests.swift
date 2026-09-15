@@ -42,7 +42,10 @@ final class RepoSearchBridgeTests: XCTestCase {
     XCTAssertEqual(keyword, "expo")
     XCTAssertEqual(
       repositories,
-      [SearchedRepository(id: 65_750_241, fullName: "expo/expo", stars: 51_842, language: "TypeScript")]
+      [
+        SearchedRepository(
+          id: 65_750_241, fullName: "expo/expo", stars: 51_842, language: "TypeScript")
+      ]
     )
   }
 

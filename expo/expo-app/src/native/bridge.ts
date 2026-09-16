@@ -100,10 +100,12 @@ export function markBench(name: BenchMarkerName) {
 }
 
 /**
- * Reports a marker once the change that was just committed has been drawn:
- * a commit is applied to the native views before the next frame, and
- * `requestAnimationFrame` runs at the start of that frame.
+ * Reports a marker at the frame boundary after the change has been drawn:
+ * a commit is applied to the native views before the next frame, the first
+ * `requestAnimationFrame` runs at the start of the frame that draws it, and
+ * the second one means it is on screen. Every implementation waits for the
+ * same two frame boundaries (see AGENTS.md).
  */
 export function markAfterFrame(name: BenchMarkerName) {
-  requestAnimationFrame(() => markBench(name))
+  requestAnimationFrame(() => requestAnimationFrame(() => markBench(name)))
 }

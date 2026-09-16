@@ -115,9 +115,15 @@ class HostChannel {
     });
   }
 
-  /// Reports a marker once the frame being built has been drawn.
+  /// Reports a marker at the frame boundary after the change has been drawn:
+  /// the frame being built draws it, and the next one means it is on screen.
+  /// Every implementation waits for the same two frame boundaries (see
+  /// AGENTS.md).
   void markAfterFrame(BenchMarker marker) {
-    SchedulerBinding.instance.addPostFrameCallback((_) => mark(marker));
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => mark(marker));
+      SchedulerBinding.instance.scheduleFrame();
+    });
   }
 
   void _send(String method, [Object? arguments]) {

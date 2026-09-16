@@ -48,14 +48,17 @@ fun RepoSearchScreen(
   val scope = rememberCoroutineScope()
   DisposableEffect(model) { onDispose { model.dispose() } }
 
-  // withFrameNanos resumes on the frame after the one being built, i.e. once
-  // the change has been drawn.
+  // withFrameNanos resumes on the frame after the one being built: the first
+  // one draws the change, the second means it is on screen. Every
+  // implementation waits for the same two frame boundaries (see AGENTS.md).
   LaunchedEffect(Unit) {
+    withFrameNanos {}
     withFrameNanos {}
     BenchMarker.mark("embedFirstFrame")
   }
   LaunchedEffect(model.repositories) {
     if (model.repositories.isNotEmpty()) {
+      withFrameNanos {}
       withFrameNanos {}
       BenchMarker.mark("searchRendered")
     }
@@ -63,6 +66,7 @@ fun RepoSearchScreen(
   val initialKeyword = remember { keyword }
   LaunchedEffect(model.keyword) {
     if (model.keyword != initialKeyword) {
+      withFrameNanos {}
       withFrameNanos {}
       BenchMarker.mark("keywordApplied")
     }

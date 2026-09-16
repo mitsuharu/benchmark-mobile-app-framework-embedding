@@ -106,7 +106,7 @@ describe('markBench', () => {
     })
   })
 
-  it('waits for the next frame when asked to', () => {
+  it('waits for two frames when asked to', () => {
     const frames: FrameRequestCallback[] = []
     jest
       .spyOn(globalThis, 'requestAnimationFrame')
@@ -115,7 +115,11 @@ describe('markBench', () => {
     markAfterFrame('searchRendered')
     expect(sendMessageMock).not.toHaveBeenCalled()
 
+    // The first frame draws the change; the second means it is on screen.
     frames[0](0)
+    expect(sendMessageMock).not.toHaveBeenCalled()
+
+    frames[1](0)
     expect(sendMessageMock).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'benchMark', name: 'searchRendered' }),
     )

@@ -2,13 +2,14 @@
   "framework": "native",
   "platform": "android",
   "build": "debug",
+  "physical": false,
   "appId": "com.example.benchmark.nativeapp.host",
   "device": {
     "name": "bench api36",
     "id": "emulator-5554",
     "label": "Pixel 9 エミュレータ（API 36）"
   },
-  "measuredAt": "2026-09-15T05:38:18.060Z",
+  "measuredAt": "2026-09-16T05:29:27.174Z",
   "agentDevice": "0.21.1",
   "iterations": 5,
   "warmup": 1,
@@ -17,209 +18,209 @@
     "timingsMs": {
       "coldStartMs": {
         "n": 5,
-        "median": 788,
-        "mean": 790.6,
-        "min": 769,
-        "max": 826,
-        "stdev": 19.085072700935672
+        "median": 685,
+        "mean": 672,
+        "min": 646,
+        "max": 690,
+        "stdev": 18.579558659989747
       },
       "embedOpenColdMs": {
         "n": 5,
-        "median": 244,
-        "mean": 281.8,
-        "min": 237,
-        "max": 362,
-        "stdev": 51.12885682273759
+        "median": 247,
+        "mean": 253.8,
+        "min": 220,
+        "max": 303,
+        "stdev": 28.519467035693356
       },
       "embedOpenWarmMs": {
         "n": 5,
-        "median": 244,
-        "mean": 240.4,
-        "min": 180,
-        "max": 312,
-        "stdev": 44.03907355973784
+        "median": 76,
+        "mean": 84,
+        "min": 65,
+        "max": 130,
+        "stdev": 23.50319127267614
       },
       "searchRenderMs": {
         "n": 5,
-        "median": 325,
-        "mean": 320.6,
-        "min": 284,
-        "max": 339,
-        "stdev": 19.5202459000905
+        "median": 173,
+        "mean": 185,
+        "min": 163,
+        "max": 213,
+        "stdev": 19.70786644972002
       },
       "searchToHostMs": {
         "n": 5,
-        "median": 47,
-        "mean": 44.4,
-        "min": 36,
-        "max": 54,
-        "stdev": 7.2277243998370615
+        "median": 40,
+        "mean": 39.2,
+        "min": 32,
+        "max": 44,
+        "stdev": 4.66476151587624
       },
       "commandMs": {
         "n": 5,
-        "median": 40,
-        "mean": 36.6,
-        "min": 24,
-        "max": 45,
-        "stdev": 7.631513611335566
+        "median": 24,
+        "mean": 26.2,
+        "min": 23,
+        "max": 33,
+        "stdev": 3.655133376499413
       }
     },
     "memoryKb": {
       "hostIdle": {
         "n": 5,
-        "median": 75163,
-        "mean": 75151.6,
-        "min": 75098,
-        "max": 75176,
-        "stdev": 28.9039789648415
+        "median": 73308,
+        "mean": 73320,
+        "min": 73288,
+        "max": 73390,
+        "stdev": 35.84410690755176
       },
       "embedOpened": {
         "n": 5,
-        "median": 82645,
-        "mean": 82677.2,
-        "min": 82626,
-        "max": 82773,
-        "stdev": 54.46980815093808
+        "median": 74773,
+        "mean": 74766.6,
+        "min": 74700,
+        "max": 74812,
+        "stdev": 38.59326366090331
       },
       "afterSearch": {
         "n": 5,
-        "median": 89110,
-        "mean": 89111.4,
-        "min": 89073,
-        "max": 89147,
-        "stdev": 30.78051331605761
+        "median": 78979,
+        "mean": 78963.6,
+        "min": 78883,
+        "max": 79019,
+        "stdev": 47.22541688540187
       },
       "backToHost": {
         "n": 5,
-        "median": 89593,
-        "mean": 89584.2,
-        "min": 89513,
-        "max": 89655,
-        "stdev": 51.15232155044383
+        "median": 79463,
+        "mean": 79459.2,
+        "min": 79403,
+        "max": 79523,
+        "stdev": 45.327254494398844
       }
     },
     "startupRoundtripMs": {
       "n": 5,
-      "median": 1618,
-      "mean": 1595.6,
-      "min": 1509,
-      "max": 1676,
-      "stdev": 60.632004749966825
+      "median": 1165,
+      "mean": 1167.2,
+      "min": 1125,
+      "max": 1217,
+      "stdev": 29.545896500191017
     }
   },
   "runs": [
     {
       "index": 0,
       "warmup": true,
-      "startupRoundtripMs": 1666,
+      "startupRoundtripMs": 1771,
       "memoryKb": {
-        "hostIdle": 74844,
-        "embedOpened": 82577,
-        "afterSearch": 88676,
-        "backToHost": 89153
+        "hostIdle": 73254,
+        "embedOpened": 74782,
+        "afterSearch": 78653,
+        "backToHost": 79144
       },
       "timings": {
-        "coldStartMs": 848,
-        "embedOpenColdMs": 336,
-        "embedOpenWarmMs": 197,
-        "searchRenderMs": 350,
-        "searchToHostMs": 48,
-        "commandMs": 23
+        "coldStartMs": 1068,
+        "embedOpenColdMs": 185,
+        "embedOpenWarmMs": 105,
+        "searchRenderMs": 203,
+        "searchToHostMs": 49,
+        "commandMs": 30
       }
     },
     {
       "index": 1,
       "warmup": false,
-      "startupRoundtripMs": 1544,
+      "startupRoundtripMs": 1125,
       "memoryKb": {
-        "hostIdle": 75098,
-        "embedOpened": 82640,
-        "afterSearch": 89073,
-        "backToHost": 89513
+        "hostIdle": 73304,
+        "embedOpened": 74794,
+        "afterSearch": 78979,
+        "backToHost": 79463
       },
       "timings": {
-        "coldStartMs": 789,
-        "embedOpenColdMs": 323,
-        "embedOpenWarmMs": 244,
-        "searchRenderMs": 339,
-        "searchToHostMs": 54,
-        "commandMs": 42
+        "coldStartMs": 653,
+        "embedOpenColdMs": 220,
+        "embedOpenWarmMs": 65,
+        "searchRenderMs": 172,
+        "searchToHostMs": 40,
+        "commandMs": 27
       }
     },
     {
       "index": 2,
       "warmup": false,
-      "startupRoundtripMs": 1676,
+      "startupRoundtripMs": 1217,
       "memoryKb": {
-        "hostIdle": 75146,
-        "embedOpened": 82773,
-        "afterSearch": 89110,
-        "backToHost": 89618
+        "hostIdle": 73308,
+        "embedOpened": 74754,
+        "afterSearch": 78943,
+        "backToHost": 79403
       },
       "timings": {
-        "coldStartMs": 826,
-        "embedOpenColdMs": 237,
-        "embedOpenWarmMs": 213,
-        "searchRenderMs": 325,
-        "searchToHostMs": 47,
-        "commandMs": 40
+        "coldStartMs": 690,
+        "embedOpenColdMs": 303,
+        "embedOpenWarmMs": 79,
+        "searchRenderMs": 163,
+        "searchToHostMs": 36,
+        "commandMs": 33
       }
     },
     {
       "index": 3,
       "warmup": false,
-      "startupRoundtripMs": 1618,
+      "startupRoundtripMs": 1165,
       "memoryKb": {
-        "hostIdle": 75175,
-        "embedOpened": 82702,
-        "afterSearch": 89147,
-        "backToHost": 89655
+        "hostIdle": 73288,
+        "embedOpened": 74773,
+        "afterSearch": 79019,
+        "backToHost": 79523
       },
       "timings": {
-        "coldStartMs": 788,
-        "embedOpenColdMs": 243,
-        "embedOpenWarmMs": 312,
-        "searchRenderMs": 335,
-        "searchToHostMs": 49,
-        "commandMs": 32
+        "coldStartMs": 646,
+        "embedOpenColdMs": 235,
+        "embedOpenWarmMs": 70,
+        "searchRenderMs": 213,
+        "searchToHostMs": 44,
+        "commandMs": 24
       }
     },
     {
       "index": 4,
       "warmup": false,
-      "startupRoundtripMs": 1631,
+      "startupRoundtripMs": 1158,
       "memoryKb": {
-        "hostIdle": 75163,
-        "embedOpened": 82626,
-        "afterSearch": 89145,
-        "backToHost": 89593
+        "hostIdle": 73390,
+        "embedOpened": 74812,
+        "afterSearch": 78994,
+        "backToHost": 79492
       },
       "timings": {
-        "coldStartMs": 781,
-        "embedOpenColdMs": 362,
-        "embedOpenWarmMs": 180,
-        "searchRenderMs": 284,
-        "searchToHostMs": 36,
-        "commandMs": 45
+        "coldStartMs": 685,
+        "embedOpenColdMs": 264,
+        "embedOpenWarmMs": 76,
+        "searchRenderMs": 204,
+        "searchToHostMs": 44,
+        "commandMs": 24
       }
     },
     {
       "index": 5,
       "warmup": false,
-      "startupRoundtripMs": 1509,
+      "startupRoundtripMs": 1171,
       "memoryKb": {
-        "hostIdle": 75176,
-        "embedOpened": 82645,
-        "afterSearch": 89082,
-        "backToHost": 89542
+        "hostIdle": 73310,
+        "embedOpened": 74700,
+        "afterSearch": 78883,
+        "backToHost": 79415
       },
       "timings": {
-        "coldStartMs": 769,
-        "embedOpenColdMs": 244,
-        "embedOpenWarmMs": 253,
-        "searchRenderMs": 320,
-        "searchToHostMs": 36,
-        "commandMs": 24
+        "coldStartMs": 686,
+        "embedOpenColdMs": 247,
+        "embedOpenWarmMs": 130,
+        "searchRenderMs": 173,
+        "searchToHostMs": 32,
+        "commandMs": 23
       }
     }
   ]

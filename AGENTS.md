@@ -78,9 +78,20 @@ BENCH|<name>|<epochMs>
 | `commandSent` | ホスト | `setKeyword` を送った時 |
 | `keywordApplied` | 埋め込み | 差し替えたキーワードを描画したフレームの後 |
 
-「フレームの後」は各フレームワークで最も近い手段を使います
-（Compose: `withFrameNanos`、Flutter: `addPostFrameCallback`、SwiftUI: `onAppear` の次のメインループ、
-React Native: コミット後の `useEffect`）。
+埋め込み側の「フレームの後」は、**フレーム境界を 2 回待った時点**にそろえます。
+1 回目のフレームが変更を描き、2 回目の境界で画面に出ていると言えるためです。
+フレームワークごとに最も近い手段を使うと、打刻の位置がパイプラインの別の場所になり
+（React Native は変更を描くフレームの先頭、SwiftUI はその 1 ループ後）、
+1 フレーム分の差がそのまま数値の差として出ます。
+
+| 実装 | 待ち方 |
+| --- | --- |
+| SwiftUI（native の画面） | `CADisplayLink` の 2 tick |
+| Compose Multiplatform / Compose | `withFrameNanos` を 2 回 |
+| Flutter | `addPostFrameCallback` の中で次のフレームを要求し、その `addPostFrameCallback` |
+| React Native | `requestAnimationFrame` を 2 段 |
+
+ホストが出す `hostFirstFrame` は、4 実装とも同じ（`onAppear` の次のメインループ）なので、そのままです。
 
 埋め込みのランタイム（React Native / Flutter エンジン）は、どちらのプラットフォームでも
 **アプリ起動時に初期化**します（公式の推奨どおり）。そのぶんはコールドスタートに含まれます。

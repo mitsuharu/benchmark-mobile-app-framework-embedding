@@ -5,7 +5,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-export const FRAMEWORKS = ['native', 'kmp', 'flutter', 'expo']
+export const FRAMEWORKS = ['native', 'kmp', 'kmp-native-ui', 'flutter', 'expo']
 export const PLATFORMS = ['ios', 'android']
 
 const BENCH_ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -18,6 +18,7 @@ const APP_IDS = {
     android: 'com.example.benchmark.nativeapp.host',
   },
   kmp: 'com.example.benchmark.kmp.host',
+  'kmp-native-ui': 'com.example.benchmark.kmpnativeui.host',
   flutter: 'com.example.benchmark.flutter.host',
   // Kept from sample-expo-brownfield.
   expo: 'com.example.sample.expo.brownfield.host',

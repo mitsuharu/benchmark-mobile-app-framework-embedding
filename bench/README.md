@@ -16,7 +16,7 @@ npm run mock-server -- --delay-ms 200 --quiet
 
 本物の API を使わない理由は 2 つあります。
 
-- **レート制限**: 未認証の検索は 10 リクエスト/分までで、4 実装 × 2 プラットフォーム × 複数回の計測に足りない。
+- **レート制限**: 未認証の検索は 10 リクエスト/分までで、5 実装 × 2 プラットフォーム × 複数回の計測に足りない。
 - **ばらつき**: 通信時間が結果の大半を占めてしまい、フレームワークの差（JSON の変換、描画、ブリッジ）が見えなくなる。
 
 `GET /search/repositories` だけに応答し、クエリにかかわらず
@@ -55,6 +55,11 @@ npm run mock-server -- --quiet &                # 計測中は常に起動して
 node run.mjs --platform ios --framework native  # → results/release/ios-native.json
 node report.mjs                                 # Markdown の表にする（--write でルート README を更新）
 ```
+
+1 つの表に並ぶ実装は、`--framework all` で同じセッションのうちに続けて計測してください。
+Android エミュレータの値はエミュレータを起動してからの時間で大きく変わり（同じ APK の native で
+埋め込み画面の 2 回目の表示が 201 ms → 62 ms になったことがあります）、日をまたいだ結果は並べられません。
+1 実装だけ測り直したときは、同じ表の他の実装も測り直します。
 
 ### デバッグビルド
 

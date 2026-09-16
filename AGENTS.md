@@ -1,7 +1,7 @@
 # AGENTS.md
 
 モバイルアプリのフレームワーク埋め込み（brownfield）を比較するベンチマークのリポジトリです。
-同じ「GitHub リポジトリ検索」画面を 4 つの方式で iOS / Android のネイティブホストアプリへ組み込み、
+同じ「GitHub リポジトリ検索」画面を 5 つの方式で iOS / Android のネイティブホストアプリへ組み込み、
 起動時間・応答速度・メモリを同じ手順で測ります。
 
 作業前に `README.md` と、変更するディレクトリの README を読んでください。
@@ -12,6 +12,7 @@
 | --- | --- |
 | `native/` | 基準。SwiftUI / Jetpack Compose で書いた検索画面を同じアプリ内で表示する |
 | `kmp/` | Kotlin Multiplatform + Compose Multiplatform の画面を XCFramework / AAR で組み込む |
+| `kmp-native-ui/` | Kotlin Multiplatform でロジックだけを共有し、画面は SwiftUI / Jetpack Compose で書く |
 | `flutter/` | Flutter の add-to-app。xcframework / AAR で組み込む |
 | `expo/` | expo-brownfield。[sample-expo-brownfield](https://github.com/mitsuharu/sample-expo-brownfield) を複製したもの |
 | `bench/` | モックサーバ、agent-device による計測ランナー、結果の集計 |

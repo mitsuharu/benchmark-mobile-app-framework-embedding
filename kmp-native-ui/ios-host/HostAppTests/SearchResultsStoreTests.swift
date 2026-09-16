@@ -97,13 +97,41 @@ final class RepoSearchBridgeInteropTests: XCTestCase {
       .send(command: RepoSearchCommandSetKeyword(keyword: "swift"))
   }
 
-  func testTheScreenIsAViewController() {
-    let controller = RepoSearchViewControllerKt.RepoSearchViewController(
-      keyword: "expo",
-      apiBaseUrl: "http://127.0.0.1:8787",
-      onClose: {}
-    )
+}
 
-    XCTAssertNotNil(controller.view)
+/// The screen's view model: the shared Kotlin model as SwiftUI sees it.
+final class RepoSearchViewModelTests: XCTestCase {
+  private func makeModel() -> RepoSearchViewModel {
+    RepoSearchViewModel(keyword: "expo", apiBaseURL: URL(string: "http://127.0.0.1:8787")!)
+  }
+
+  func testStartsWithTheKeywordTheHostPassedIn() {
+    let model = makeModel()
+    defer { model.dispose() }
+
+    XCTAssertEqual(model.keyword, "expo")
+    XCTAssertTrue(model.repositories.isEmpty)
+    XCTAssertFalse(model.isLoading)
+    XCTAssertNil(model.errorMessage)
+  }
+
+  func testFollowsAKeywordTheHostSendsWhileOpen() {
+    let model = makeModel()
+    defer { model.dispose() }
+
+    RepoSearchBridge(listener: nil, onEvent: nil)
+      .send(command: RepoSearchCommandSetKeyword(keyword: "swift"))
+
+    XCTAssertEqual(model.keyword, "swift")
+  }
+
+  func testStopsFollowingCommandsOnceDisposed() {
+    let model = makeModel()
+    model.dispose()
+
+    RepoSearchBridge(listener: nil, onEvent: nil)
+      .send(command: RepoSearchCommandSetKeyword(keyword: "swift"))
+
+    XCTAssertEqual(model.keyword, "expo")
   }
 }

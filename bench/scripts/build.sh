@@ -4,7 +4,7 @@
 # bench/artifacts/<build>/<framework>/<platform>: a build that sends its
 # searches to bench/mock-server.
 #
-#   ./scripts/build.sh <native|kmp|flutter|expo> <ios|android> [release|debug] [simulator|device]
+#   ./scripts/build.sh <native|kmp|kmp-native-ui|flutter|expo> <ios|android> [release|debug] [simulator|device]
 #
 # release (the default) is what the main results compare. debug builds every
 # part the way a developer runs it day to day: Xcode's Debug configuration,
@@ -23,7 +23,7 @@
 
 set -euo pipefail
 
-FRAMEWORK="${1:?framework: native, kmp, flutter or expo}"
+FRAMEWORK="${1:?framework: native, kmp, kmp-native-ui, flutter or expo}"
 PLATFORM="${2:?platform: ios or android}"
 BUILD="${3:-release}"
 TARGET="${4:-simulator}"
@@ -142,6 +142,14 @@ case "$FRAMEWORK/$PLATFORM" in
     # the same library; only the host's build type differs.
     (cd "$ROOT/kmp/shared" && ./gradlew publishToHostApp --quiet)
     build_android_host "$ROOT/kmp/android-host"
+    ;;
+  kmp-native-ui/ios)
+    (cd "$ROOT/kmp-native-ui/shared" && ./gradlew "assembleRepoSearchKit${CONFIG}XCFramework" --quiet)
+    build_ios_host "$ROOT/kmp-native-ui/ios-host" "./scripts/generate.sh $BUILD"
+    ;;
+  kmp-native-ui/android)
+    (cd "$ROOT/kmp-native-ui/shared" && ./gradlew publishToHostApp --quiet)
+    build_android_host "$ROOT/kmp-native-ui/android-host"
     ;;
   flutter/ios)
     # Release (AOT) Flutter has no Dart code in its simulator slice, so the

@@ -58,6 +58,7 @@ const PLATFORM_NAMES = { ios: 'iOS', android: 'Android' }
 const FRAMEWORK_NAMES = {
   native: 'native',
   kmp: 'KMP / CMP',
+  'kmp-native-ui': 'KMP + ネイティブ UI',
   flutter: 'Flutter',
   expo: 'Expo',
 }

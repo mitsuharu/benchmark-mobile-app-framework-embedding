@@ -5,8 +5,8 @@
 
 題材は [sample-expo-brownfield](https://github.com/mitsuharu/sample-expo-brownfield) と同じ
 「GitHub のリポジトリを検索して一覧表示し、結果をネイティブ側へ返す」画面です。
-これをネイティブ（基準）、Kotlin Multiplatform / Compose Multiplatform、Flutter、Expo の 4 方式で実装し、
-同じホストアプリ・同じ操作・同じ計測手順で比べます。
+これをネイティブ（基準）、Kotlin Multiplatform / Compose Multiplatform、Kotlin Multiplatform + ネイティブ UI、
+Flutter、Expo の 5 方式で実装し、同じホストアプリ・同じ操作・同じ計測手順で比べます。
 
 ## 構成
 
@@ -14,6 +14,7 @@
 .
 ├── native/    # 基準。SwiftUI / Jetpack Compose だけで実装
 ├── kmp/       # Compose Multiplatform の画面を XCFramework / AAR で組み込む
+├── kmp-native-ui/  # KMP でロジックだけ共有し、画面は SwiftUI / Compose で書く
 ├── flutter/   # Flutter add-to-app
 ├── expo/      # expo-brownfield（sample-expo-brownfield の複製）
 └── bench/     # モックサーバ、agent-device による計測ランナー
@@ -42,6 +43,7 @@
 | --- | --- | --- | --- | --- |
 | [native](native/README.md) | ローカル Swift Package | ライブラリモジュール | なし（SwiftUI / Compose） | Swift / Kotlin の値をそのまま |
 | [kmp](kmp/README.md) | static XCFramework | AAR | Compose Multiplatform（iOS は Skia で自前描画、Android は Jetpack Compose そのもの） | Kotlin オブジェクト（iOS は Objective-C interop 越し） |
+| [kmp-native-ui](kmp-native-ui/README.md) | static XCFramework（ロジックのみ） | AAR（ロジックのみ） | なし（画面は SwiftUI / Compose でホスト側に実装） | Kotlin オブジェクト（iOS は Objective-C interop 越し） |
 | [flutter](flutter/README.md) | xcframework（dynamic） | AAR | Flutter エンジン（起動時に 1 つ作って使い回す） | MethodChannel |
 | [expo](expo/README.md) | Swift Package（xcframework 群） | AAR | React Native（Hermes、起動時に初期化） | expo-brownfield のメッセージ |
 
@@ -80,6 +82,7 @@ iPhone 17（iOS 27）は実機の計測に使えませんでした。Xcode 26.6 
 | Android のホストアプリ | debug ビルドタイプ（R8 なし、debuggable） | release ビルドタイプ（R8 有効、デバッグ鍵で署名） |
 | native | 同じ Swift Package / ライブラリモジュールを Debug / debug でビルド | 同じものを Release / release でビルド |
 | KMP / CMP | iOS: Kotlin/Native の debug フレームワーク。Android: リリースと同じ AAR（KMP の Android ライブラリは 1 バリアントのみ） | iOS: release フレームワーク。Android: AAR |
+| KMP + ネイティブ UI | 同上（共有するのはロジックだけ。画面はホストアプリと同じ構成でビルドされる） | 同上 |
 | Flutter | iOS / Android とも Debug（JIT） | Android: Release（AOT）。iOS 実機: Release（AOT）。**iOS シミュレータ: Debug（JIT）**（下記） |
 | Expo | JS は Metro から読み込む（Android は `adb reverse tcp:8081`） | JS は成果物に同梱 |
 
@@ -445,7 +448,7 @@ iOS（iPhone XR、A12 Bionic）:
 cd bench
 npm ci
 npm run mock-server -- --quiet &
-./scripts/build.sh <native|kmp|flutter|expo> <ios|android>   # 計測用ビルド
+./scripts/build.sh <native|kmp|kmp-native-ui|flutter|expo> <ios|android>   # 計測用ビルド
 node run.mjs --platform ios --framework all --iterations 5
 node run.mjs --platform android --framework all --iterations 5
 node report.mjs --write
